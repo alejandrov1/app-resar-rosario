@@ -4,7 +4,7 @@ import 'dart:math' as math;
 class RosarioWidget extends StatelessWidget {
   final double size;
 
-  const RosarioWidget({super.key, required this.size});
+  const RosarioWidget({super.key, required this.size, required Color color});
 
   @override
   Widget build(BuildContext context) {

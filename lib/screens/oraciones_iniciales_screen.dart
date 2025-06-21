@@ -1,3 +1,4 @@
+import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import '../models/prayer_models.dart';
 
@@ -10,7 +11,7 @@ class OracionesInicialesScreen extends StatelessWidget {
     super.key,
     required this.currentPrayer,
     required this.onNext,
-    required this.onHome,
+    required this.onHome, required PreferencesService preferences,
   });
 
   @override
