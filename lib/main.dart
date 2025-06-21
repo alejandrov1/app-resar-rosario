@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
-import 'state/rosary_state.dart';
+import 'resar_rosario_app.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => RosaryState(),
-      child: RosaryApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
-class RosaryApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Santo Rosario',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomeScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const RosarioApp(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
