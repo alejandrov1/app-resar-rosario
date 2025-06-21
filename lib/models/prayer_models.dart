@@ -93,7 +93,12 @@ class PrayerData {
     Prayer(
       type: 'maria_madre',
       title: 'María, Madre de gracia',
-      text: 'María, Madre de gracia, Madre de misericordia.\nDefiéndenos de nuestros enemigos y ampáranos ahora y en la hora de nuestra muerte. Amén.',
+      text: 'María, Madre de gracia, Madre de misericordia.\nEn la vida y en la muerte amparanos gran señora.',
+    ),
+    Prayer(
+      type: 'sagrado_corazon',
+      title: 'Sagrado corazon',
+      text: 'Sagrado corazon de jesus.\nEn vos confio.',
     ),
     Prayer(
       type: 'oh_jesus',
@@ -106,7 +111,70 @@ class PrayerData {
     Prayer(
       type: 'letanias',
       title: 'Letanías de la Santísima Virgen',
-      text: 'Señor, ten piedad\nCristo, ten piedad\nSeñor, ten piedad\nCristo, óyenos\nCristo, escúchanos\n\nDios Padre celestial. Ten misericordia de nosotros.\nDios Hijo, Redentor del mundo. Ten misericordia de nosotros.\nDios Espíritu Santo. Ten misericordia de nosotros.\nTrinidad Santa, un solo Dios.\n\nSanta María, Ruega por nosotros\nSanta Madre de Dios, Ruega por nosotros\nSanta Virgen de las Vírgenes, Ruega por nosotros...',
+      text:
+          'Señor, ten piedad\n'
+          'Cristo, ten piedad\n'
+          'Señor, ten piedad\n\n'
+          'Cristo, óyenos\n'
+          'Cristo, escúchanos\n\n'
+          'Dios, Padre celestial, ten misericordia de nosotros.\n'
+          'Dios, Hijo, Redentor del mundo, ten misericordia de nosotros.\n'
+          'Dios, Espíritu Santo, ten misericordia de nosotros.\n'
+          'Santísima Trinidad, un solo Dios, ten misericordia de nosotros.\n\n'
+          'Santa María, ruega por nosotros.\n'
+          'Santa Madre de Dios, ruega por nosotros.\n'
+          'Santa Virgen de las vírgenes, ruega por nosotros.\n'
+          'Madre de Cristo, ruega por nosotros.\n'
+          'Madre de la Iglesia, ruega por nosotros.\n'
+          'Madre de la misericordia, ruega por nosotros.\n'
+          'Madre de la divina gracia, ruega por nosotros.\n'
+          'Madre de la esperanza, ruega por nosotros.\n'
+          'Madre purísima, ruega por nosotros.\n'
+          'Madre castísima, ruega por nosotros.\n'
+          'Madre siempre virgen, ruega por nosotros.\n'
+          'Madre inmaculada, ruega por nosotros.\n'
+          'Madre amable, ruega por nosotros.\n'
+          'Madre admirable, ruega por nosotros.\n'
+          'Madre del buen consejo, ruega por nosotros.\n'
+          'Madre del Creador, ruega por nosotros.\n'
+          'Madre del Salvador, ruega por nosotros.\n'
+          'Virgen prudentísima, ruega por nosotros.\n'
+          'Virgen digna de veneración, ruega por nosotros.\n'
+          'Virgen digna de alabanza, ruega por nosotros.\n'
+          'Virgen poderosa, ruega por nosotros.\n'
+          'Virgen clemente, ruega por nosotros.\n'
+          'Virgen fiel, ruega por nosotros.\n'
+          'Espejo de justicia, ruega por nosotros.\n'
+          'Trono de la sabiduría, ruega por nosotros.\n'
+          'Causa de nuestra alegría, ruega por nosotros.\n'
+          'Vaso espiritual, ruega por nosotros.\n'
+          'Vaso digno de honor, ruega por nosotros.\n'
+          'Vaso de insigne devoción, ruega por nosotros.\n'
+          'Rosa mística, ruega por nosotros.\n'
+          'Torre de David, ruega por nosotros.\n'
+          'Torre de marfil, ruega por nosotros.\n'
+          'Casa de oro, ruega por nosotros.\n'
+          'Arca de la Alianza, ruega por nosotros.\n'
+          'Puerta del cielo, ruega por nosotros.\n'
+          'Estrella de la mañana, ruega por nosotros.\n'
+          'Salud de los enfermos, ruega por nosotros.\n'
+          'Refugio de los pecadores, ruega por nosotros.\n'
+          'Consuelo de los migrantes, ruega por nosotros.\n'
+          'Consoladora de los afligidos, ruega por nosotros.\n'
+          'Auxilio de los cristianos, ruega por nosotros.\n'
+          'Reina de los Ángeles, ruega por nosotros.\n'
+          'Reina de los Patriarcas, ruega por nosotros.\n'
+          'Reina de los Profetas, ruega por nosotros.\n'
+          'Reina de los Apóstoles, ruega por nosotros.\n'
+          'Reina de los Mártires, ruega por nosotros.\n'
+          'Reina de los Confesores, ruega por nosotros.\n'
+          'Reina de las Vírgenes, ruega por nosotros.\n'
+          'Reina de todos los Santos, ruega por nosotros.\n'
+          'Reina concebida sin pecado original, ruega por nosotros.\n'
+          'Reina asunta a los Cielos, ruega por nosotros.\n'
+          'Reina del Santísimo Rosario, ruega por nosotros.\n'
+          'Reina de la familia, ruega por nosotros.\n'
+          'Reina de la paz, ruega por nosotros.',
     ),
     Prayer(
       type: 'cordero',

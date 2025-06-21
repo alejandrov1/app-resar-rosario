@@ -141,6 +141,56 @@ class _RosarioAppState extends State<RosarioApp> {
     });
   }
 
+  /// Retrocede al paso anterior en el flujo del rosario
+  void previousStep() {
+    setState(() {
+      switch (currentStep) {
+        case 'oraciones-iniciales':
+          if (currentPrayer > 0) {
+            currentPrayer--;
+          } else {
+            currentStep = 'inicio';
+          }
+          break;
+          
+        case 'misterios':
+          // Si estamos en las Ave Marías y no es la primera
+          if (currentPrayer == 2 && currentAveMaria > 0) {
+            currentAveMaria--;
+          } else if (currentPrayer > 0) {
+            // Retroceder a la oración anterior
+            currentPrayer--;
+            // Si la oración anterior era Ave María, ir a la última
+            if (currentPrayer == 2) {
+              currentAveMaria = 9;
+            }
+          } else if (currentMystery > 0) {
+            // Retroceder al misterio anterior, a la última oración
+            currentMystery--;
+            currentPrayer = PrayerData.mysteryPrayers.length - 1;
+            currentAveMaria = 0;
+          } else {
+            // Desde el primer misterio, volver a la última oración inicial
+            currentStep = 'oraciones-iniciales';
+            currentPrayer = PrayerData.initialPrayers.length - 1;
+          }
+          break;
+          
+        case 'oraciones-finales':
+          if (currentPrayer > 0) {
+            currentPrayer--;
+          } else {
+            // Desde la primera oración final, volver al último misterio
+            currentStep = 'misterios';
+            currentMystery = 4;
+            currentPrayer = PrayerData.mysteryPrayers.length - 1;
+            currentAveMaria = 0;
+          }
+          break;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Construir la pantalla correspondiente según el paso actual
@@ -157,6 +207,7 @@ class _RosarioAppState extends State<RosarioApp> {
         return OracionesInicialesScreen(
           currentPrayer: currentPrayer,
           onNext: nextStep,
+          onPrevious: previousStep,
           onHome: resetApp,
           preferences: widget.preferences,
         );
@@ -168,6 +219,7 @@ class _RosarioAppState extends State<RosarioApp> {
           currentPrayer: currentPrayer,
           currentAveMaria: currentAveMaria,
           onNext: nextStep,
+          onPrevious: previousStep,
           onHome: resetApp,
           preferences: widget.preferences,
         );
@@ -176,6 +228,7 @@ class _RosarioAppState extends State<RosarioApp> {
         return OracionesFinalesScreen(
           currentPrayer: currentPrayer,
           onNext: nextStep,
+          onPrevious: previousStep,
           onHome: resetApp,
           preferences: widget.preferences,
         );

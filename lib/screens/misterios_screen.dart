@@ -9,6 +9,7 @@ class MisteriosScreen extends StatelessWidget {
   final int currentPrayer;
   final int currentAveMaria;
   final VoidCallback onNext;
+  final VoidCallback onPrevious;
   final VoidCallback onHome;
 
   const MisteriosScreen({
@@ -18,7 +19,9 @@ class MisteriosScreen extends StatelessWidget {
     required this.currentPrayer,
     required this.currentAveMaria,
     required this.onNext,
-    required this.onHome, required PreferencesService preferences,
+    required this.onPrevious,
+    required this.onHome,
+    required PreferencesService preferences,
   });
 
   @override
@@ -62,10 +65,10 @@ class MisteriosScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (showTopBar) ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (showTopBar)
                               Text(
                                 '$todayMystery • ${currentMystery + 1}/5',
                                 style: const TextStyle(
@@ -73,30 +76,18 @@ class MisteriosScreen extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF1F2937),
                                 ),
+                              )
+                            else
+                              const SizedBox.shrink(), // Ocupa espacio sin mostrar nada
+                            IconButton(
+                              onPressed: onHome,
+                              icon: const Icon(
+                                Icons.home,
+                                color: Color(0xFF6B7280),
                               ),
-                              IconButton(
-                                onPressed: onHome,
-                                icon: const Icon(
-                                  Icons.home,
-                                  color: Color(0xFF6B7280),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ] else ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                onPressed: onHome,
-                                icon: const Icon(
-                                  Icons.home,
-                                  color: Color(0xFF6B7280),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 16),
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -228,36 +219,56 @@ class MisteriosScreen extends StatelessWidget {
                                 ),
                         ),
                         const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: onNext,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF9333EA),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  currentPrayer == PrayerData.mysteryPrayers.length - 1 && currentMystery == 4 
-                                      ? 'Finalizar Misterios' 
-                                      : 'Continuar',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 1, // Botón Atrás: 1 parte del espacio
+                              child: OutlinedButton(
+                                onPressed: onPrevious,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF6B7280),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
+                                  side: const BorderSide(color: Color(0xFFD1D5DB)),
                                 ),
-                                const SizedBox(width: 12),
-                                const Icon(Icons.chevron_right, size: 20),
-                              ],
+                                child: const Text('Atrás', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2, // Botón Continuar: 2 partes del espacio
+                              child: ElevatedButton(
+                                onPressed: onNext,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF9333EA),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      currentPrayer == PrayerData.mysteryPrayers.length - 1 && currentMystery == 4 
+                                          ? 'Finalizar Misterios' 
+                                          : 'Continuar',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.chevron_right, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

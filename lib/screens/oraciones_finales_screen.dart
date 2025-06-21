@@ -5,13 +5,16 @@ import '../models/prayer_models.dart';
 class OracionesFinalesScreen extends StatelessWidget {
   final int currentPrayer;
   final VoidCallback onNext;
+  final VoidCallback onPrevious;
   final VoidCallback onHome;
 
   const OracionesFinalesScreen({
     super.key,
     required this.currentPrayer,
     required this.onNext,
-    required this.onHome, required PreferencesService preferences,
+    required this.onPrevious,
+    required this.onHome,
+    required PreferencesService preferences,
   });
 
   @override
@@ -121,36 +124,56 @@ class OracionesFinalesScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: onNext,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF16A34A),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  currentPrayer == PrayerData.finalPrayers.length - 1 
-                                      ? 'Terminar Rosario' 
-                                      : 'Continuar',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                             Expanded(
+                              flex: 1, // Botón Atrás: 1 parte del espacio
+                              child: OutlinedButton(
+                                onPressed: onPrevious,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF6B7280),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
+                                  side: const BorderSide(color: Color(0xFFD1D5DB)),
                                 ),
-                                const SizedBox(width: 12),
-                                const Icon(Icons.chevron_right, size: 20),
-                              ],
+                                child: const Text('Atrás', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2, // Botón Continuar: 2 partes del espacio
+                              child: ElevatedButton(
+                                onPressed: onNext,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF16A34A),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      currentPrayer == PrayerData.finalPrayers.length - 1 
+                                          ? 'Terminar Rosario' 
+                                          : 'Continuar',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.chevron_right, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

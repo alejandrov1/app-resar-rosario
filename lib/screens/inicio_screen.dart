@@ -1,259 +1,141 @@
+import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
-import '../widgets/rosario_widget.dart';
-import '../widgets/settings_drawer.dart';
-import '../widgets/responsive_container.dart';
-import '../widgets/orientation_builder_widget.dart';
-import '../constants/app_constants.dart';
-import '../services/preferences_service.dart';
-import '../utils/responsive_utils.dart';
 
-/// Pantalla inicial de la aplicación del Santo Rosario
-/// 
-/// Muestra:
-/// - El tipo de misterio del día
-/// - Un widget visual del rosario
-/// - Botón para comenzar el rezo
-/// - Acceso a configuración mediante drawer
 class InicioScreen extends StatelessWidget {
   final String todayMystery;
   final String todayDay;
   final VoidCallback onNext;
-  final PreferencesService preferences;
 
   const InicioScreen({
     super.key,
     required this.todayMystery,
     required this.todayDay,
     required this.onNext,
-    required this.preferences,
+    required PreferencesService preferences,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SettingsDrawer(preferences: preferences),
-      body: OrientationBuilderWidget(
-        builder: (context, orientation) {
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: preferences.useHighContrast
-                    ? [
-                        Colors.black87,
-                        Colors.black,
-                      ]
-                    : [
-                        AppConstants.primaryBlue,
-                        AppConstants.secondaryBlue.withOpacity(0.8),
-                      ],
-              ),
-            ),
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  // Botón del menú
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Semantics(
-                      label: 'Abrir menú de configuración',
-                      button: true,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.menu,
-                          color: preferences.useHighContrast 
-                              ? Colors.white 
-                              : Colors.white.withOpacity(0.9),
-                          size: preferences.useLargeButtons ? 32 : 24,
-                        ),
-                        onPressed: () {
-                          Scaffold.of(context).openDrawer();
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE0F2FE), // light-blue-100
+              Color(0xFFBAE6FD), // light-blue-200
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Rezar el Santo Rosario',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0C4A6E), // cyan-900
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // --- Widget para mostrar la imagen ---
+                    // Usamos ClipRRect para aplicar las esquinas redondeadas a la imagen.
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: Image.asset(
+                        'assets/images/imagen-rosario.png',
+                        height: 200,
+
+                        // Esta es la propiedad MÁS IMPORTANTE para el ajuste.
+                        // BoxFit.cover asegura que la imagen llene todo el contenedor,
+                        // manteniendo su proporción y recortando lo que sobre.
+                        // ¡Justo como el fondo de color original!
+                        fit: BoxFit.cover,
+                        
+                        // Este es un widget de respaldo que se mostrará si por alguna
+                        // razón la imagen no se encuentra o no se puede cargar.
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(16.0),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Imagen no encontrada',
+                                style: TextStyle(color: Colors.black54),
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
-                  ),
-                  
-                  // Contenido principal
-                  Center(
-                    child: ResponsiveContainer(
-                      child: SingleChildScrollView(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                            boxShadow: preferences.useHighContrast
-                                ? []
-                                : [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                            border: preferences.useHighContrast
-                                ? Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  )
-                                : null,
+                    // --- Fin del widget de la imagen ---
+
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Misterios para hoy',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF0E7490), // cyan-700
+                            ),
                           ),
-                          padding: EdgeInsets.all(
-                            orientation == Orientation.landscape
-                                ? AppConstants.spacingM
-                                : AppConstants.spacingL,
+                          const SizedBox(height: 4),
+                          Text(
+                            '$todayDay: $todayMystery',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF155E75), // cyan-800
+                            ),
                           ),
-                          child: _buildContent(context, orientation),
-                        ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context, Orientation orientation) {
-    final isLandscape = orientation == Orientation.landscape;
-    final deviceType = ResponsiveUtils.getDeviceType(context);
-    
-    if (isLandscape && deviceType != DeviceType.mobile) {
-      // Layout horizontal para tablets y desktop en landscape
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Icono del rosario
-          Expanded(
-            child: _buildRosarioIcon(context),
-          ),
-          const SizedBox(width: AppConstants.spacingL),
-          // Información y botón
-          Expanded(
-            child: _buildInfoSection(context),
-          ),
-        ],
-      );
-    } else {
-      // Layout vertical para móviles y portrait
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildRosarioIcon(context),
-          const SizedBox(height: AppConstants.spacingM),
-          _buildInfoSection(context),
-        ],
-      );
-    }
-  }
-
-  Widget _buildRosarioIcon(BuildContext context) {
-    final size = ResponsiveUtils.getDeviceType(context) == DeviceType.mobile
-        ? 80.0
-        : 112.0;
-        
-    return Semantics(
-      label: 'Icono del Santo Rosario',
-      child: Container(
-        width: size + 32,
-        height: size + 32,
-        decoration: BoxDecoration(
-          color: preferences.useHighContrast
-              ? Colors.white
-              : Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(AppConstants.radiusCircle),
-        ),
-        child: Center(
-          child: RosarioWidget(
-            size: size,
-            color: preferences.useHighContrast
-                ? Colors.black
-                : AppConstants.secondaryBlue,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Semantics(
-          header: true,
-          child: Text(
-            'Santo Rosario',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              color: preferences.useHighContrast
-                  ? Theme.of(context).colorScheme.onSurface
-                  : AppConstants.textPrimary,
-            ),
-          ),
-        ),
-        const SizedBox(height: AppConstants.spacingXS),
-        
-        Semantics(
-          label: 'Hoy es $todayDay. Los misterios de hoy son $todayMystery',
-          child: Text(
-            'Misterios $todayMystery • $todayDay',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: preferences.useHighContrast
-                  ? Theme.of(context).colorScheme.onSurface.withOpacity(0.8)
-                  : AppConstants.textSecondary,
-            ),
-          ),
-        ),
-        const SizedBox(height: AppConstants.spacingL),
-        
-        SizedBox(
-          width: double.infinity,
-          child: Semantics(
-            label: 'Comenzar a rezar el rosario',
-            button: true,
-            child: ElevatedButton(
-              onPressed: onNext,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: preferences.useHighContrast
-                    ? Colors.white
-                    : AppConstants.secondaryBlue,
-                foregroundColor: preferences.useHighContrast
-                    ? Colors.black
-                    : Colors.white,
-                padding: EdgeInsets.symmetric(
-                  vertical: preferences.useLargeButtons
-                      ? AppConstants.spacingM
-                      : AppConstants.spacingS,
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: onNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0369A1), // light-blue-700
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 48, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                      child: const Text(
+                        'Comenzar a Rezar',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.play_arrow,
-                    size: preferences.useLargeButtons ? 28 : 24,
-                  ),
-                  const SizedBox(width: AppConstants.spacingXS),
-                  Text(
-                    'Comenzar Rosario',
-                    style: TextStyle(
-                      fontSize: (preferences.useLargeButtons
-                          ? AppConstants.fontSizeL
-                          : AppConstants.fontSizeM) * preferences.textScaleFactor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
