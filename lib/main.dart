@@ -70,7 +70,9 @@ class _MyAppState extends State<MyApp> {
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            highContrast: _preferences.useHighContrast, textScaler: TextScaler.linear(_preferences.textScaleFactor),
+            textScaleFactor: _preferences.textScaleFactor,
+            // Aplicar alto contraste si está habilitado
+            highContrast: _preferences.useHighContrast,
           ),
           child: child!,
         );

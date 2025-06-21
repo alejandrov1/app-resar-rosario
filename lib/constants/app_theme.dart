@@ -10,6 +10,7 @@ class AppTheme {
         primary: AppConstants.primaryBlue,
         secondary: AppConstants.secondaryBlue,
         surface: Colors.white,
+        background: Colors.white,
         error: Colors.red,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -63,6 +64,7 @@ class AppTheme {
         primary: AppConstants.primaryBlue,
         secondary: AppConstants.secondaryBlue,
         surface: Color(0xFF1F2937),
+        background: Color(0xFF111827),
         error: Colors.red,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
