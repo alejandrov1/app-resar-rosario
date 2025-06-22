@@ -211,5 +211,15 @@ class PrayerData {
       title: 'Jaculatoria final',
       text: 'Ave María Purísima.\nSin pecado concebida.',
     ),
+    Prayer(
+      type: 'final',
+      title: 'Señal de la Cruz',
+      text: 'Por la señal de la Santa Cruz, de nuestros enemigos líbranos Señor Dios Nuestro. En el nombre del Padre, del Hijo y del Espíritu Santo. Amén.',
+    ),
+    Prayer(
+      type: 'final',
+      title: 'Dulce Madre',
+      text: 'Dulce Madre, no te alejes, tu vista de mí no apartes, ven conmigo a todas partes y solo/a nunca me dejes. Ya que proteges tanto como verdadera madre, haz que me bendiga.\nEl Padre, el Hijo y el Espíritu Santo.\Amén.',
+    ),
   ];
 }
