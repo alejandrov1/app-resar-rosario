@@ -2,6 +2,7 @@ import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import '../models/prayer_models.dart';
 import '../widgets/rosary_beads_widget.dart';
+import '../constants/app_constants.dart';
 
 class MisteriosScreen extends StatelessWidget {
   final String todayMystery;
@@ -11,6 +12,7 @@ class MisteriosScreen extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onPrevious;
   final VoidCallback onHome;
+  final PreferencesService preferences;
 
   const MisteriosScreen({
     super.key,
@@ -21,7 +23,7 @@ class MisteriosScreen extends StatelessWidget {
     required this.onNext,
     required this.onPrevious,
     required this.onHome,
-    required PreferencesService preferences,
+    required this.preferences,
   });
 
   @override
@@ -33,26 +35,26 @@ class MisteriosScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF6B21A8), // purple-800
-              Color(0xFF9333EA), // purple-600
+              AppConstants.primaryPurple,
+              AppConstants.secondaryPurple,
             ],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(AppConstants.spacingS),
             child: Column(
               children: [
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
+                      color: Colors.white, // CAMBIADO A BLANCO EXPLÍCITAMENTE
+                      borderRadius: BorderRadius.circular(AppConstants.radiusM),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
@@ -61,7 +63,7 @@ class MisteriosScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(AppConstants.spacingM),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -71,80 +73,81 @@ class MisteriosScreen extends StatelessWidget {
                             if (showTopBar)
                               Text(
                                 '$todayMystery • ${currentMystery + 1}/5',
-                                style: const TextStyle(
-                                  fontSize: 20,
+                                style: TextStyle(
+                                  fontSize: AppConstants.fontSizeL * preferences.textScaleFactor,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1F2937),
+                                  color: AppConstants.textPrimary,
                                 ),
                               )
                             else
-                              const SizedBox.shrink(), // Ocupa espacio sin mostrar nada
+                              const SizedBox.shrink(),
                             IconButton(
                               onPressed: onHome,
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.home,
-                                color: Color(0xFF6B7280),
+                                color: AppConstants.textSecondary,
+                                size: preferences.useLargeButtons ? 32 : 24,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppConstants.spacingS),
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppConstants.spacingS),
                           decoration: BoxDecoration(
                             color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppConstants.radiusS),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 '${currentMystery + 1}° Misterio ${todayMystery.substring(0, todayMystery.length - 1)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  fontSize: AppConstants.fontSizeM * preferences.textScaleFactor,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF6B21A8),
+                                  color: AppConstants.primaryPurple,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: AppConstants.spacingXS),
                               Text(
                                 currentMysteryTitle,
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: AppConstants.fontSizeS * preferences.textScaleFactor,
                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF7C2D92),
+                                  color: AppConstants.primaryPurple.withOpacity(0.8),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppConstants.spacingS),
                         Expanded(
                           child: currentOracion.type == 'misterio'
                               ? Container(
-                                  padding: const EdgeInsets.all(24),
+                                  padding: const EdgeInsets.all(AppConstants.spacingM),
                                   decoration: BoxDecoration(
                                     color: Colors.purple.shade100,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
                                   ),
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        const Text(
+                                        Text(
                                           'Medita en este Misterio',
                                           style: TextStyle(
-                                            fontSize: 18,
+                                            fontSize: AppConstants.fontSizeM * preferences.textScaleFactor,
                                             fontWeight: FontWeight.w600,
-                                            color: Color(0xFF6B21A8),
+                                            color: AppConstants.primaryPurple,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: AppConstants.spacingXS),
                                         Text(
                                           currentMysteryTitle,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Color(0xFF7C2D92),
+                                          style: TextStyle(
+                                            fontSize: AppConstants.fontSizeS * preferences.textScaleFactor,
+                                            color: AppConstants.primaryPurple.withOpacity(0.8),
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
@@ -153,10 +156,10 @@ class MisteriosScreen extends StatelessWidget {
                                   ),
                                 )
                               : Container(
-                                  padding: const EdgeInsets.all(24),
+                                  padding: const EdgeInsets.all(AppConstants.spacingM),
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
                                   ),
                                   child: SingleChildScrollView(
                                     child: Column(
@@ -164,53 +167,55 @@ class MisteriosScreen extends StatelessWidget {
                                       children: [
                                         Row(
                                           children: [
-                                            const Icon(
+                                            Icon(
                                               Icons.keyboard_arrow_down,
-                                              color: Color(0xFF9333EA),
+                                              color: AppConstants.secondaryPurple,
                                               size: 20,
                                             ),
-                                            const SizedBox(width: 8),
+                                            const SizedBox(width: AppConstants.spacingXS),
                                             Expanded(
                                               child: Text(
                                                 currentOracion.type == 'avemaria' 
                                                     ? '${currentOracion.title} (${currentAveMaria + 1}°)'
                                                     : currentOracion.title,
-                                                style: const TextStyle(
-                                                  fontSize: 18,
+                                                style: TextStyle(
+                                                  fontSize: AppConstants.fontSizeM * preferences.textScaleFactor,
                                                   fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF1F2937),
+                                                  color: AppConstants.textPrimary,
                                                 ),
                                               ),
                                             ),
                                           ],
                                         ),
                                         if (currentOracion.type == 'avemaria') ...[
-                                          const SizedBox(height: 16),
+                                          const SizedBox(height: AppConstants.spacingS),
                                           RosaryBeadsWidget(
                                             current: currentAveMaria,
                                             total: 10,
                                           ),
-                                          const SizedBox(height: 8),
+                                          const SizedBox(height: AppConstants.spacingXS),
                                           Center(
                                             child: Text(
                                               'Ave María ${currentAveMaria + 1} de 10',
-                                              style: const TextStyle(
-                                                color: Color(0xFF9333EA),
-                                                fontSize: 14,
+                                              style: TextStyle(
+                                                color: AppConstants.secondaryPurple,
+                                                fontSize: AppConstants.fontSizeXS * preferences.textScaleFactor,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(height: 16),
+                                          const SizedBox(height: AppConstants.spacingS),
                                         ] else ...[
-                                          const SizedBox(height: 16),
+                                          const SizedBox(height: AppConstants.spacingS),
                                         ],
                                         Text(
                                           currentOracion.text,
-                                          style: const TextStyle(
-                                            fontSize: 16,
+                                          style: TextStyle(
+                                            fontSize: AppConstants.fontSizeS * preferences.textScaleFactor,
                                             height: 1.6,
-                                            color: Color(0xFF1F2937),
+                                            color: preferences.useHighContrast 
+                                                ? Colors.black 
+                                                : AppConstants.textPrimary,
                                           ),
                                         ),
                                       ],
@@ -218,51 +223,62 @@ class MisteriosScreen extends StatelessWidget {
                                   ),
                                 ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: AppConstants.spacingM),
                         Row(
                           children: [
                             Expanded(
-                              flex: 1, // Botón Atrás: 1 parte del espacio
+                              flex: 1,
                               child: OutlinedButton(
                                 onPressed: onPrevious,
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF6B7280),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  foregroundColor: AppConstants.textSecondary,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: preferences.useLargeButtons 
+                                        ? AppConstants.spacingL 
+                                        : AppConstants.spacingS,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
                                   ),
                                   side: const BorderSide(color: Color(0xFFD1D5DB)),
                                 ),
-                                child: const Text('Atrás', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  'Atrás', 
+                                  style: TextStyle(
+                                    fontSize: AppConstants.fontSizeM * preferences.textScaleFactor, 
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: AppConstants.spacingS),
                             Expanded(
-                              flex: 2, // Botón Continuar: 2 partes del espacio
+                              flex: 2,
                               child: ElevatedButton(
                                 onPressed: onNext,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF9333EA),
+                                  backgroundColor: AppConstants.secondaryPurple,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: preferences.useLargeButtons 
+                                        ? AppConstants.spacingL 
+                                        : AppConstants.spacingS,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
                                   ),
                                   elevation: 0,
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      currentPrayer == PrayerData.mysteryPrayers.length - 1 && currentMystery == 4 
-                                          ? 'Finalizar Misterios' 
-                                          : 'Continuar',
-                                      style: const TextStyle(
-                                        fontSize: 18,
+                                    Text( 'Continuar',
+                                      style: TextStyle(
+                                        fontSize: AppConstants.fontSizeM * preferences.textScaleFactor,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(width: AppConstants.spacingS),
                                     const Icon(Icons.chevron_right, size: 20),
                                   ],
                                 ),

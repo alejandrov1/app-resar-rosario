@@ -1,7 +1,8 @@
 import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/prayer_models.dart';
+import '../constants/app_constants.dart';
+import '../widgets/rosary_image_widget.dart';
 
 class InicioScreen extends StatefulWidget {
   final String todayMystery;
@@ -32,7 +33,6 @@ class _InicioScreenState extends State<InicioScreen>
   void initState() {
     super.initState();
     
-    // Configurar animaciones
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -62,7 +62,6 @@ class _InicioScreenState extends State<InicioScreen>
       curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
     ));
 
-    // Iniciar animaciones
     _animationController.forward();
   }
 
@@ -74,7 +73,6 @@ class _InicioScreenState extends State<InicioScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Obtener dimensiones de la pantalla
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final statusBarHeight = MediaQuery.of(context).padding.top;
@@ -86,9 +84,9 @@ class _InicioScreenState extends State<InicioScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFE0F2FE), // light-blue-100
-              Color(0xFFBAE6FD), // light-blue-200
-              Color(0xFF7DD3FC), // light-blue-300
+              Color(0xFFE0F2FE),
+              Color(0xFFBAE6FD),
+              Color(0xFF7DD3FC),
             ],
             stops: [0.0, 0.5, 1.0],
           ),
@@ -96,11 +94,10 @@ class _InicioScreenState extends State<InicioScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Encabezado con título
               Padding(
                 padding: EdgeInsets.only(
                   top: statusBarHeight * 0.5,
-                  bottom: 16.0,
+                  bottom: AppConstants.spacingS,
                 ),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
@@ -109,9 +106,9 @@ class _InicioScreenState extends State<InicioScreen>
                       Text(
                         'Santo Rosario',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: AppConstants.fontSizeXL * widget.preferences.textScaleFactor,
                           fontWeight: FontWeight.w300,
-                          color: const Color(0xFF0C4A6E),
+                          color: AppConstants.primaryBlue,
                           letterSpacing: 2.0,
                           shadows: [
                             Shadow(
@@ -122,16 +119,16 @@ class _InicioScreenState extends State<InicioScreen>
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppConstants.spacingXS),
                       Container(
                         width: 100,
                         height: 2,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0369A1),
+                          color: AppConstants.secondaryBlue,
                           borderRadius: BorderRadius.circular(1),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0369A1).withOpacity(0.3),
+                              color: AppConstants.secondaryBlue.withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -143,102 +140,36 @@ class _InicioScreenState extends State<InicioScreen>
                 ),
               ),
               
-              // Contenido principal con scroll
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
                   child: Column(
                     children: [
-                      // Imagen del rosario con animación
                       SlideTransition(
                         position: _slideAnimation,
                         child: ScaleTransition(
                           scale: _scaleAnimation,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 20),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  spreadRadius: 2,
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                width: screenWidth * 0.85,
-                                height: screenHeight * 0.35,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.white.withOpacity(0.9),
-                                      Colors.white.withOpacity(0.7),
-                                    ],
-                                  ),
-                                ),
-                                child: Image.asset(
-                                  'assets/images/imagen-rosario.png',
-                                  fit: BoxFit.contain, // Cambiado a contain para ver la imagen completa
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Colors.blue.shade100,
-                                            Colors.blue.shade200,
-                                          ],
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.account_balance,
-                                            size: 80,
-                                            color: Colors.blue.shade700,
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'Santo Rosario',
-                                            style: TextStyle(
-                                              color: Colors.blue.shade700,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
+                          child: RosaryImageWidget(
+                            width: screenWidth * 0.85,
+                            height: screenHeight * 0.35,
+                            imagePath: 'assets/images/imagen-rosario.png',
                           ),
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppConstants.spacingL),
                       
-                      // Card de información del día
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(AppConstants.spacingL),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(AppConstants.radiusM),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF0369A1).withOpacity(0.1),
+                                color: AppConstants.secondaryBlue.withOpacity(0.1),
                                 spreadRadius: 2,
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
@@ -252,60 +183,42 @@ class _InicioScreenState extends State<InicioScreen>
                                 children: [
                                   Icon(
                                     Icons.calendar_today_rounded,
-                                    color: const Color(0xFF0369A1),
+                                    color: AppConstants.secondaryBlue,
                                     size: 20,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: AppConstants.spacingXS),
                                   Text(
                                     widget.todayDay,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Color(0xFF0E7490),
+                                    style: TextStyle(
+                                      fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
+                                      color: AppConstants.primaryBlue,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => _showMisteriosDialog(context),
+                              const SizedBox(height: AppConstants.spacingS),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppConstants.spacingS,
+                                  vertical: AppConstants.spacingXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppConstants.primaryBlue,
+                                      AppConstants.secondaryBlue,
+                                    ],
+                                  ),
                                   borderRadius: BorderRadius.circular(30),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF0369A1),
-                                          Color(0xFF0284C7),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Misterios ${widget.todayMystery}',
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Icon(
-                                          Icons.info_outline,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ],
-                                    ),
+                                ),
+                                child: Text(
+                                  'Misterios ${widget.todayMystery}',
+                                  style: TextStyle(
+                                    fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ),
@@ -314,9 +227,8 @@ class _InicioScreenState extends State<InicioScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppConstants.spacingL),
                       
-                      // Botón de comenzar mejorado
                       SlideTransition(
                         position: _slideAnimation,
                         child: Hero(
@@ -325,28 +237,29 @@ class _InicioScreenState extends State<InicioScreen>
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: () {
-                                // Vibración táctil sutil
                                 HapticFeedback.lightImpact();
                                 widget.onNext();
                               },
                               borderRadius: BorderRadius.circular(30),
                               child: Container(
                                 width: screenWidth * 0.8,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                  vertical: 18,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppConstants.spacingL,
+                                  vertical: widget.preferences.useLargeButtons 
+                                      ? AppConstants.spacingM 
+                                      : AppConstants.spacingS,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
+                                  gradient: LinearGradient(
                                     colors: [
-                                      Color(0xFF0369A1),
-                                      Color(0xFF0284C7),
+                                      AppConstants.primaryBlue,
+                                      AppConstants.secondaryBlue,
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(30),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF0369A1).withOpacity(0.4),
+                                      color: AppConstants.primaryBlue.withOpacity(0.4),
                                       spreadRadius: 1,
                                       blurRadius: 20,
                                       offset: const Offset(0, 10),
@@ -361,11 +274,11 @@ class _InicioScreenState extends State<InicioScreen>
                                       color: Colors.white,
                                       size: 24,
                                     ),
-                                    const SizedBox(width: 12),
-                                    const Text(
+                                    const SizedBox(width: AppConstants.spacingS),
+                                    Text(
                                       'Comenzar a Rezar',
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
                                         fontWeight: FontWeight.w600,
                                         color: Colors.white,
                                         letterSpacing: 0.5,
@@ -379,19 +292,18 @@ class _InicioScreenState extends State<InicioScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppConstants.spacingL),
                       
-                      // Texto inspiracional
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(AppConstants.spacingS),
                           child: Text(
                             '"El Rosario es la oración más hermosa que podemos ofrecer a la Virgen María"',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: AppConstants.fontSizeXS * widget.preferences.textScaleFactor,
                               fontStyle: FontStyle.italic,
-                              color: const Color(0xFF0C4A6E).withOpacity(0.8),
+                              color: AppConstants.primaryBlue.withOpacity(0.8),
                               height: 1.5,
                             ),
                             textAlign: TextAlign.center,
@@ -399,7 +311,7 @@ class _InicioScreenState extends State<InicioScreen>
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: AppConstants.spacingL),
                     ],
                   ),
                 ),
@@ -408,150 +320,6 @@ class _InicioScreenState extends State<InicioScreen>
           ),
         ),
       ),
-    );
-  }
-
-  void _showMisteriosDialog(BuildContext context) {
-    final misterios = PrayerData.mysteryData[widget.todayMystery] ?? [];
-    
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      color: const Color(0xFF0369A1),
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        'Misterios ${widget.todayMystery}',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0C4A6E),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.todayDay,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: const Color(0xFF0E7490),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  height: 2,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0369A1).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ...misterios.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final misterio = entry.value;
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFFE0F2FE),
-                          const Color(0xFFF0F9FF),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFF0369A1).withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0369A1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            misterio,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              height: 1.4,
-                              color: Color(0xFF0C4A6E),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0369A1),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    'Cerrar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

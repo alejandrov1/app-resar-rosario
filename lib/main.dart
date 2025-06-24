@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'resar_rosario_app.dart';
 import 'services/preferences_service.dart';
 import 'constants/app_theme.dart';
+import 'widgets/settings_drawer.dart';
 
-void main() {
-  // Asegurar que los widgets estén inicializados
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Configurar orientaciones soportadas
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -16,7 +15,6 @@ void main() {
     DeviceOrientation.landscapeRight,
   ]);
   
-  // Configurar el estilo de la barra de estado
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -40,7 +38,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Escuchar cambios en las preferencias
     _preferences.addListener(_onPreferencesChanged);
   }
 
@@ -51,9 +48,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _onPreferencesChanged() {
-    setState(() {
-      // Reconstruir la app cuando cambien las preferencias
-    });
+    setState(() {});
   }
 
   @override
@@ -63,20 +58,32 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.lightTheme(_preferences.textScaleFactor),
       darkTheme: AppTheme.darkTheme(_preferences.textScaleFactor),
       themeMode: _preferences.themeMode,
-      home: RosarioApp(preferences: _preferences),
+      home: MainScreen(preferences: _preferences),
       debugShowCheckedModeBanner: false,
       
-      // Configuración de accesibilidad
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaleFactor: _preferences.textScaleFactor,
-            // Aplicar alto contraste si está habilitado
+            textScaler: TextScaler.linear(_preferences.textScaleFactor),
             highContrast: _preferences.useHighContrast,
           ),
           child: child!,
         );
       },
+    );
+  }
+}
+
+class MainScreen extends StatelessWidget {
+  final PreferencesService preferences;
+
+  const MainScreen({super.key, required this.preferences});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: SettingsDrawer(preferences: preferences),
+      body: RosarioApp(preferences: preferences),
     );
   }
 }
