@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_constants.dart';
 import '../widgets/rosary_image_widget.dart';
+import '../widgets/misterios_del_dia_modal.dart';
 
 class InicioScreen extends StatefulWidget {
   final String todayMystery;
@@ -162,67 +163,106 @@ class _InicioScreenState extends State<InicioScreen>
                       
                       FadeTransition(
                         opacity: _fadeAnimation,
-                        child: Container(
-                          padding: const EdgeInsets.all(AppConstants.spacingL),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                barrierColor: Colors.black54,
+                                builder: (context) => MisteriosDelDia (
+                                  todayMystery: widget.todayMystery,
+                                  todayDay: widget.todayDay,
+                                  preferences: widget.preferences,
+                                ),
+                              );
+                            },
                             borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppConstants.secondaryBlue.withOpacity(0.1),
-                                spreadRadius: 2,
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today_rounded,
-                                    color: AppConstants.secondaryBlue,
-                                    size: 20,
+                            child: Container(
+                              padding: const EdgeInsets.all(AppConstants.spacingL),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(AppConstants.radiusM),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppConstants.secondaryBlue.withOpacity(0.1),
+                                    spreadRadius: 2,
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
                                   ),
-                                  const SizedBox(width: AppConstants.spacingXS),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today_rounded,
+                                        color: AppConstants.secondaryBlue,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: AppConstants.spacingXS),
+                                      Text(
+                                        widget.todayDay,
+                                        style: TextStyle(
+                                          fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
+                                          color: AppConstants.primaryBlue,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: AppConstants.spacingS),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppConstants.spacingS,
+                                      vertical: AppConstants.spacingXS,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppConstants.primaryBlue,
+                                          AppConstants.secondaryBlue,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Misterios ${widget.todayMystery}',
+                                          style: TextStyle(
+                                            fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        const SizedBox(width: AppConstants.spacingXS),
+                                        const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppConstants.spacingXS),
                                   Text(
-                                    widget.todayDay,
+                                    'Toca para ver los misterios',
                                     style: TextStyle(
-                                      fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
-                                      color: AppConstants.primaryBlue,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: AppConstants.fontSizeXS * widget.preferences.textScaleFactor,
+                                      color: AppConstants.textSecondary,
+                                      fontStyle: FontStyle.italic,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: AppConstants.spacingS),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppConstants.spacingS,
-                                  vertical: AppConstants.spacingXS,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppConstants.primaryBlue,
-                                      AppConstants.secondaryBlue,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Text(
-                                  'Misterios ${widget.todayMystery}',
-                                  style: TextStyle(
-                                    fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
