@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'resar_rosario_app.dart';
 import 'services/preferences_service.dart';
+import 'services/notification_service.dart';
 import 'constants/app_theme.dart';
 import 'widgets/settings_drawer.dart';
 
@@ -21,6 +22,13 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
+
+   // Inicializar el servicio de notificaciones
+  try {
+    await NotificationService().initialize();
+  } catch (e) {
+    debugPrint('Error al inicializar NotificationService: $e');
+  }
   
   runApp(const MyApp());
 }

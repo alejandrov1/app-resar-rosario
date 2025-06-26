@@ -1,3 +1,4 @@
+import 'package:app_resar_rosario/screens/agendar_rosario_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_constants.dart';
@@ -112,6 +113,25 @@ class MainMenuDrawer extends StatelessWidget {
                         todayMystery: todayMystery,
                         todayDay: todayDay,
                         preferences: preferences,
+                      ),
+                    );
+                  },
+                ),
+                
+                _buildMenuItem(
+                  context: context,
+                  icon: Icons.schedule,
+                  title: 'Agendar Rosario',
+                  subtitle: 'Programar recordatorios',
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context); // Cerrar el drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AgendarRosarioScreen(
+                          preferences: preferences,
+                        ),
                       ),
                     );
                   },
