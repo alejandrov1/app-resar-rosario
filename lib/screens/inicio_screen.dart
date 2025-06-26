@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_constants.dart';
 import '../widgets/rosary_image_widget.dart';
-import '../widgets/misterios_del_dia_modal.dart';
+import '../widgets/main_menu_drawer.dart';
 
 class InicioScreen extends StatefulWidget {
   final String todayMystery;
@@ -76,9 +76,13 @@ class _InicioScreenState extends State<InicioScreen>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final statusBarHeight = MediaQuery.of(context).padding.top;
     
     return Scaffold(
+      drawer: MainMenuDrawer(
+        preferences: widget.preferences,
+        todayMystery: widget.todayMystery,
+        todayDay: widget.todayDay,
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -95,49 +99,74 @@ class _InicioScreenState extends State<InicioScreen>
         child: SafeArea(
           child: Column(
             children: [
+              // Header con menú hamburguesa
               Padding(
-                padding: EdgeInsets.only(
-                  top: statusBarHeight * 0.5,
-                  bottom: AppConstants.spacingS,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.spacingS,
+                  vertical: AppConstants.spacingXS,
                 ),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Column(
-                    children: [
-                      Text(
-                        'Santo Rosario',
-                        style: TextStyle(
-                          fontSize: AppConstants.fontSizeXL * widget.preferences.textScaleFactor,
-                          fontWeight: FontWeight.w300,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Botón de menú hamburguesa
+                    Builder(
+                      builder: (context) => IconButton(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          Scaffold.of(context).openDrawer();
+                        },
+                        icon: Icon(
+                          Icons.menu,
                           color: AppConstants.primaryBlue,
-                          letterSpacing: 2.0,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 10.0,
-                              color: Colors.white.withOpacity(0.5),
-                              offset: const Offset(2.0, 2.0),
-                            ),
-                          ],
+                          size: widget.preferences.useLargeButtons ? 32 : 28,
                         ),
+                        tooltip: 'Abrir menú',
                       ),
-                      const SizedBox(height: AppConstants.spacingXS),
-                      Container(
-                        width: 100,
-                        height: 2,
-                        decoration: BoxDecoration(
-                          color: AppConstants.secondaryBlue,
-                          borderRadius: BorderRadius.circular(1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppConstants.secondaryBlue.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
+                    ),
+                    // Espacio para mantener el título centrado
+                    const SizedBox(width: 48),
+                  ],
+                ),
+              ),
+              
+              // Título de la app
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    Text(
+                      'Santo Rosario',
+                      style: TextStyle(
+                        fontSize: AppConstants.fontSizeXL * widget.preferences.textScaleFactor,
+                        fontWeight: FontWeight.w300,
+                        color: AppConstants.primaryBlue,
+                        letterSpacing: 2.0,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10.0,
+                            color: Colors.white.withOpacity(0.5),
+                            offset: const Offset(2.0, 2.0),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: AppConstants.spacingXS),
+                    Container(
+                      width: 100,
+                      height: 2,
+                      decoration: BoxDecoration(
+                        color: AppConstants.secondaryBlue,
+                        borderRadius: BorderRadius.circular(1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppConstants.secondaryBlue.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               
@@ -147,6 +176,8 @@ class _InicioScreenState extends State<InicioScreen>
                   padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
                   child: Column(
                     children: [
+                      const SizedBox(height: AppConstants.spacingM),
+                      
                       SlideTransition(
                         position: _slideAnimation,
                         child: ScaleTransition(
@@ -161,108 +192,70 @@ class _InicioScreenState extends State<InicioScreen>
                       
                       const SizedBox(height: AppConstants.spacingL),
                       
+                      // Widget de misterios del día (sin funcionalidad de tap)
                       FadeTransition(
                         opacity: _fadeAnimation,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              showDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                barrierColor: Colors.black54,
-                                builder: (context) => MisteriosDelDia (
-                                  todayMystery: widget.todayMystery,
-                                  todayDay: widget.todayDay,
-                                  preferences: widget.preferences,
-                                ),
-                              );
-                            },
+                        child: Container(
+                          padding: const EdgeInsets.all(AppConstants.spacingL),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                            child: Container(
-                              padding: const EdgeInsets.all(AppConstants.spacingL),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppConstants.secondaryBlue.withOpacity(0.1),
-                                    spreadRadius: 2,
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppConstants.secondaryBlue.withOpacity(0.1),
+                                spreadRadius: 2,
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today_rounded,
+                                    color: AppConstants.secondaryBlue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: AppConstants.spacingXS),
+                                  Text(
+                                    widget.todayDay,
+                                    style: TextStyle(
+                                      fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
+                                      color: AppConstants.primaryBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ],
                               ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today_rounded,
-                                        color: AppConstants.secondaryBlue,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: AppConstants.spacingXS),
-                                      Text(
-                                        widget.todayDay,
-                                        style: TextStyle(
-                                          fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
-                                          color: AppConstants.primaryBlue,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+                              const SizedBox(height: AppConstants.spacingS),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppConstants.spacingS,
+                                  vertical: AppConstants.spacingXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppConstants.primaryBlue,
+                                      AppConstants.secondaryBlue,
                                     ],
                                   ),
-                                  const SizedBox(height: AppConstants.spacingS),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppConstants.spacingS,
-                                      vertical: AppConstants.spacingXS,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          AppConstants.primaryBlue,
-                                          AppConstants.secondaryBlue,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Misterios ${widget.todayMystery}',
-                                          style: TextStyle(
-                                            fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(width: AppConstants.spacingXS),
-                                        const Icon(
-                                          Icons.arrow_forward_ios,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ],
-                                    ),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  'Misterios ${widget.todayMystery}',
+                                  style: TextStyle(
+                                    fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
                                   ),
-                                  const SizedBox(height: AppConstants.spacingXS),
-                                  Text(
-                                    'Toca para ver los misterios',
-                                    style: TextStyle(
-                                      fontSize: AppConstants.fontSizeXS * widget.preferences.textScaleFactor,
-                                      color: AppConstants.textSecondary,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),
