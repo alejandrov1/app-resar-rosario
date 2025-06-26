@@ -73,7 +73,7 @@ class OracionesInicialesScreen extends StatelessWidget {
                                 color: Color(0xFF1F2937),
                               ),
                             ),
-                            SizedBox(width: 48) // Espacio para alinear el título
+                            const SizedBox(width: 48) // Espacio para alinear el título
                           ],
                         ),
                         const SizedBox(height: 16),

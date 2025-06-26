@@ -35,7 +35,7 @@ class MisteriosScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -167,7 +167,7 @@ class MisteriosScreen extends StatelessWidget {
                                       children: [
                                         Row(
                                           children: [
-                                            Icon(
+                                            const Icon(
                                               Icons.keyboard_arrow_down,
                                               color: AppConstants.secondaryPurple,
                                               size: 20,

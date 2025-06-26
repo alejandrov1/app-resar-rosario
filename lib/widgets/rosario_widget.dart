@@ -56,7 +56,7 @@ class RosarioPainter extends CustomPainter {
 
     // Cuentas pequeñas (Ave María) distribuidas en el círculo
     final smallBeadRadius = size.width * 0.015;
-    final beadCount = 40; // Aproximadamente 10 por cada cuarto del círculo
+    const beadCount = 40; // Aproximadamente 10 por cada cuarto del círculo
 
     for (int i = 0; i < beadCount; i++) {
       final angle = (i * 2 * math.pi) / beadCount;

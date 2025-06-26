@@ -214,7 +214,7 @@ class _InicioScreenState extends State<InicioScreen>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.calendar_today_rounded,
                                     color: AppConstants.secondaryBlue,
                                     size: 20,
@@ -237,7 +237,7 @@ class _InicioScreenState extends State<InicioScreen>
                                   vertical: AppConstants.spacingXS,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [
                                       AppConstants.primaryBlue,
                                       AppConstants.secondaryBlue,
@@ -283,7 +283,7 @@ class _InicioScreenState extends State<InicioScreen>
                                       : AppConstants.spacingS,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [
                                       AppConstants.primaryBlue,
                                       AppConstants.secondaryBlue,

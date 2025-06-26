@@ -219,7 +219,7 @@ class PrayerData {
     Prayer(
       type: 'final',
       title: 'Dulce Madre',
-      text: 'Dulce Madre, no te alejes, tu vista de mí no apartes, ven conmigo a todas partes y solo/a nunca me dejes. Ya que proteges tanto como verdadera madre, haz que me bendiga.\nEl Padre, el Hijo y el Espíritu Santo.\Amén.',
+      text: 'Dulce Madre, no te alejes, tu vista de mí no apartes, ven conmigo a todas partes y solo/a nunca me dejes. Ya que proteges tanto como verdadera madre, haz que me bendiga.\nEl Padre, el Hijo y el Espíritu Santo.Amén.',
     ),
   ];
 }

@@ -106,7 +106,7 @@ class MainMenuDrawer extends StatelessWidget {
                     Navigator.pop(context); // Cerrar el drawer
                     showDialog(
                       context: context,
-                      barrierDismissible: true,
+                      barrierDismissible: false,
                       barrierColor: Colors.black54,
                       builder: (context) => MisteriosDelDia(
                         todayMystery: todayMystery,

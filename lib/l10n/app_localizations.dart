@@ -67,7 +67,7 @@ class AppLocalizations {
   
   // Progreso
   String mysteryNumber(int current, int total) => 
-      '${current}° Misterio';
+      '$current° Misterio';
   String stepProgress(int current, int total) => 
       'Paso $current de $total';
   String hailMaryProgress(int current, int total) => 

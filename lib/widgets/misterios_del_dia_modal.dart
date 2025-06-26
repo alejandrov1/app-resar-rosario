@@ -115,11 +115,14 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
             opacity: _fadeAnimation.value,
             child: Dialog(
               backgroundColor: Colors.white,
-              insetPadding: const EdgeInsets.all(AppConstants.spacingM),
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.spacingS,
+                vertical: AppConstants.spacingM,
+              ),
               child: Container(
                 constraints: BoxConstraints(
                   maxWidth: 500,
-                  maxHeight: screenHeight * 0.8,
+                  maxHeight: screenHeight * 0.9,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -142,13 +145,16 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                     Flexible(
                       child: SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.all(AppConstants.spacingM),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.spacingM,
+                          vertical: AppConstants.spacingS,
+                        ),
                         child: Column(
                           children: [
                             // Decoración superior
                             _buildTopDecoration(),
                             
-                            const SizedBox(height: AppConstants.spacingM),
+                            const SizedBox(height: AppConstants.spacingS),
                             
                             // Lista animada de misterios
                             ...mysteryList.asMap().entries.map((entry) {
@@ -172,7 +178,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                               );
                             }).toList(),
                             
-                            const SizedBox(height: AppConstants.spacingM),
+                            const SizedBox(height: AppConstants.spacingS),
                             
                             // Nota informativa animada
                             AnimatedBuilder(
@@ -235,58 +241,34 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
           // Contenido
           Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Misterios ${widget.todayMystery}',
-                          style: TextStyle(
-                            fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.todayDay,
-                              style: TextStyle(
-                                fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
-                                color: Colors.white.withOpacity(0.9),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                  Text(
+                    'Misterios ${widget.todayMystery}',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  
-                  // Botón de cerrar estilizado
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: _closeModal,
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Colors.white.withOpacity(0.9),
                       ),
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.todayDay,
+                        style: TextStyle(
+                          fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -336,12 +318,12 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
           child: Padding(
             padding: const EdgeInsets.all(4),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Número con efecto de elevación
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -371,12 +353,15 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                     ),
                   ),
                 ),
-                const SizedBox(width: AppConstants.spacingS),
+                const SizedBox(width: 12),
                 
                 // Texto del misterio con borde decorativo
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(AppConstants.spacingS),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.spacingS,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -396,7 +381,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                       mystery,
                       style: TextStyle(
                         fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
-                        height: 1.5,
+                        height: 1.4,
                         color: AppConstants.textPrimary,
                       ),
                     ),
@@ -412,7 +397,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
 
   Widget _buildInfoNote() {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.spacingS),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -429,7 +414,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: Colors.amber.shade100,
               shape: BoxShape.circle,
@@ -437,15 +422,15 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
             child: Icon(
               Icons.lightbulb_outline,
               color: Colors.amber.shade700,
-              size: 20,
+              size: 18,
             ),
           ),
-          const SizedBox(width: AppConstants.spacingS),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Medita en cada uno de estos misterios durante el rezo del Rosario',
               style: TextStyle(
-                fontSize: AppConstants.fontSizeXS * widget.preferences.textScaleFactor,
+                fontSize: (AppConstants.fontSizeXS - 1) * widget.preferences.textScaleFactor,
                 color: Colors.amber.shade700,
                 fontWeight: FontWeight.w500,
               ),
