@@ -17,6 +17,15 @@ class NotificationService extends ChangeNotifier {
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
   List<RosarioReminder> _reminders = [];
   bool _isInitialized = false;
+  
+  // Constantes para canales de notificación
+  static const String _channelIdNotification = 'rosario_notifications';
+  static const String _channelNameNotification = 'Recordatorios del Rosario';
+  static const String _channelDescNotification = 'Notificaciones silenciosas para recordar el Rosario';
+  
+  static const String _channelIdAlarm = 'rosario_alarms';
+  static const String _channelNameAlarm = 'Alarmas del Rosario';
+  static const String _channelDescAlarm = 'Alarmas sonoras para recordar el Rosario';
 
   /// Getters
   List<RosarioReminder> get reminders => List.unmodifiable(_reminders);
@@ -27,8 +36,10 @@ class NotificationService extends ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      // Inicializar timezone
+      // Inicializar timezone con la zona horaria del dispositivo
       tz.initializeTimeZones();
+      final String timeZoneName = await _getTimeZoneName();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
       
       // Configuración para Android
       const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
@@ -50,6 +61,11 @@ class NotificationService extends ChangeNotifier {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
+      // Crear canales de notificación para Android 8.0+
+      if (Platform.isAndroid) {
+        await _createNotificationChannels();
+      }
+
       // Cargar recordatorios guardados
       await _loadReminders();
       
@@ -57,31 +73,93 @@ class NotificationService extends ChangeNotifier {
       debugPrint('NotificationService inicializado correctamente');
     } catch (e) {
       debugPrint('Error al inicializar NotificationService: $e');
+      _isInitialized = false;
     }
+  }
+
+  /// Obtiene el nombre de la zona horaria del dispositivo
+  Future<String> _getTimeZoneName() async {
+    // Por defecto usar America/Mexico_City
+    return 'America/Mexico_City';
+  }
+
+  /// Crea los canales de notificación para Android
+  Future<void> _createNotificationChannels() async {
+    final AndroidFlutterLocalNotificationsPlugin? androidPlugin = 
+        _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    
+    if (androidPlugin == null) return;
+
+    // Canal para notificaciones silenciosas
+    const notificationChannel = AndroidNotificationChannel(
+      _channelIdNotification,
+      _channelNameNotification,
+      description: _channelDescNotification,
+      importance: Importance.defaultImportance,
+      playSound: false,
+      enableVibration: false,
+      showBadge: true,
+    );
+
+    // Canal para alarmas
+    const alarmChannel = AndroidNotificationChannel(
+      _channelIdAlarm,
+      _channelNameAlarm,
+      description: _channelDescAlarm,
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
+      ledColor: Color(0xFF2563EB),
+      showBadge: true,
+    );
+
+    await androidPlugin.createNotificationChannel(notificationChannel);
+    await androidPlugin.createNotificationChannel(alarmChannel);
+    
+    debugPrint('Canales de notificación creados');
   }
 
   /// Solicita permisos necesarios para las notificaciones
   Future<bool> requestPermissions() async {
     try {
+      bool allGranted = true;
+      
       if (Platform.isAndroid) {
-        // Solicitar permisos de notificación para Android 13+
-        final notificationStatus = await Permission.notification.request();
+        // Android 13+ requiere permiso explícito para notificaciones
+        if (await Permission.notification.isDenied) {
+          final status = await Permission.notification.request();
+          allGranted = allGranted && status.isGranted;
+        }
         
-        // Solicitar permiso de alarma exacta para Android 12+
-        final alarmStatus = await Permission.scheduleExactAlarm.request();
+        // Android 12+ requiere permiso para alarmas exactas
+        if (await Permission.scheduleExactAlarm.isDenied) {
+          final status = await Permission.scheduleExactAlarm.request();
+          allGranted = allGranted && status.isGranted;
+        }
         
-        // Verificar si se puede ignorar optimización de batería
-        await Permission.ignoreBatteryOptimizations.request();
+        // Opcional: Ignorar optimización de batería para mejor confiabilidad
+        if (await Permission.ignoreBatteryOptimizations.isDenied) {
+          await Permission.ignoreBatteryOptimizations.request();
+        }
         
-        return notificationStatus.isGranted && alarmStatus.isGranted;
+        // Verificar si se otorgaron los permisos
+        final notificationGranted = await Permission.notification.isGranted;
+        final alarmGranted = await Permission.scheduleExactAlarm.isGranted;
+        
+        debugPrint('Permisos: Notificación=$notificationGranted, Alarma=$alarmGranted');
+        
+        return notificationGranted && alarmGranted;
       } else if (Platform.isIOS) {
-        // Para iOS, los permisos se solicitan automáticamente en initialize()
+        // iOS maneja permisos durante la inicialización
         return true;
       }
+      
+      return allGranted;
     } catch (e) {
       debugPrint('Error al solicitar permisos: $e');
+      return false;
     }
-    return false;
   }
 
   /// Verifica si los permisos están concedidos
@@ -89,9 +167,59 @@ class NotificationService extends ChangeNotifier {
     if (Platform.isAndroid) {
       final notificationStatus = await Permission.notification.status;
       final alarmStatus = await Permission.scheduleExactAlarm.status;
+      
+      debugPrint('Estado permisos: Notificación=${notificationStatus.isGranted}, Alarma=${alarmStatus.isGranted}');
+      
       return notificationStatus.isGranted && alarmStatus.isGranted;
     }
     return true; // iOS maneja permisos automáticamente
+  }
+
+  /// Envía una notificación de prueba inmediata
+  Future<bool> sendTestNotification() async {
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        _channelIdAlarm,
+        _channelNameAlarm,
+        channelDescription: _channelDescAlarm,
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
+        visibility: NotificationVisibility.public,
+        autoCancel: true,
+        colorized: true,
+        color: Color(0xFF2563EB),
+        largeIcon: DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notificationsPlugin.show(
+        9999, // ID especial para prueba
+        '¡Prueba de Notificación!',
+        'Las notificaciones están funcionando correctamente. ¡Es hora de rezar el Rosario!',
+        details,
+      );
+      
+      debugPrint('Notificación de prueba enviada');
+      return true;
+    } catch (e) {
+      debugPrint('Error al enviar notificación de prueba: $e');
+      return false;
+    }
   }
 
   /// Carga los recordatorios desde SharedPreferences
@@ -103,6 +231,8 @@ class NotificationService extends ChangeNotifier {
       _reminders = remindersJson
           .map((json) => RosarioReminder.fromMap(jsonDecode(json)))
           .toList();
+      
+      debugPrint('Recordatorios cargados: ${_reminders.length}');
       
       // Reprogramar notificaciones activas
       await _rescheduleActiveReminders();
@@ -123,6 +253,7 @@ class NotificationService extends ChangeNotifier {
           .toList();
       
       await prefs.setStringList('rosario_reminders', remindersJson);
+      debugPrint('Recordatorios guardados: ${_reminders.length}');
     } catch (e) {
       debugPrint('Error al guardar recordatorios: $e');
     }
@@ -133,6 +264,7 @@ class NotificationService extends ChangeNotifier {
     try {
       // Verificar que no exista un recordatorio con la misma ID
       if (_reminders.any((r) => r.id == reminder.id)) {
+        debugPrint('Ya existe un recordatorio con ID ${reminder.id}');
         return false;
       }
 
@@ -144,6 +276,7 @@ class NotificationService extends ChangeNotifier {
       }
       
       notifyListeners();
+      debugPrint('Recordatorio agregado: ${reminder.title}');
       return true;
     } catch (e) {
       debugPrint('Error al agregar recordatorio: $e');
@@ -155,7 +288,10 @@ class NotificationService extends ChangeNotifier {
   Future<bool> updateReminder(RosarioReminder updatedReminder) async {
     try {
       final index = _reminders.indexWhere((r) => r.id == updatedReminder.id);
-      if (index == -1) return false;
+      if (index == -1) {
+        debugPrint('No se encontró recordatorio con ID ${updatedReminder.id}');
+        return false;
+      }
 
       // Cancelar notificaciones del recordatorio anterior
       await _cancelReminderNotifications(_reminders[index]);
@@ -170,6 +306,7 @@ class NotificationService extends ChangeNotifier {
       }
       
       notifyListeners();
+      debugPrint('Recordatorio actualizado: ${updatedReminder.title}');
       return true;
     } catch (e) {
       debugPrint('Error al actualizar recordatorio: $e');
@@ -181,16 +318,20 @@ class NotificationService extends ChangeNotifier {
   Future<bool> removeReminder(int reminderId) async {
     try {
       final index = _reminders.indexWhere((r) => r.id == reminderId);
-      if (index == -1) return false;
+      if (index == -1) {
+        debugPrint('No se encontró recordatorio con ID $reminderId');
+        return false;
+      }
 
       // Cancelar notificaciones
       await _cancelReminderNotifications(_reminders[index]);
       
       // Eliminar recordatorio
-      _reminders.removeAt(index);
+      final removedReminder = _reminders.removeAt(index);
       await _saveReminders();
       
       notifyListeners();
+      debugPrint('Recordatorio eliminado: ${removedReminder.title}');
       return true;
     } catch (e) {
       debugPrint('Error al eliminar recordatorio: $e');
@@ -202,7 +343,10 @@ class NotificationService extends ChangeNotifier {
   Future<bool> toggleReminder(int reminderId) async {
     try {
       final index = _reminders.indexWhere((r) => r.id == reminderId);
-      if (index == -1) return false;
+      if (index == -1) {
+        debugPrint('No se encontró recordatorio con ID $reminderId');
+        return false;
+      }
 
       final reminder = _reminders[index];
       final updatedReminder = reminder.copyWith(isActive: !reminder.isActive);
@@ -217,9 +361,13 @@ class NotificationService extends ChangeNotifier {
   /// Programa las notificaciones para un recordatorio
   Future<void> _scheduleReminderNotifications(RosarioReminder reminder) async {
     try {
+      debugPrint('Programando notificaciones para: ${reminder.title}');
+      
       for (int dayOfWeek in reminder.daysOfWeek) {
         await _scheduleWeeklyNotification(reminder, dayOfWeek);
       }
+      
+      debugPrint('Notificaciones programadas para ${reminder.daysOfWeek.length} días');
     } catch (e) {
       debugPrint('Error al programar notificaciones: $e');
     }
@@ -228,17 +376,18 @@ class NotificationService extends ChangeNotifier {
   /// Programa una notificación semanal para un día específico
   Future<void> _scheduleWeeklyNotification(RosarioReminder reminder, int dayOfWeek) async {
     try {
-      final now = DateTime.now();
       final scheduledDate = _getNextDateForDayOfWeek(dayOfWeek, reminder.time);
       
       // ID único para cada día de la semana de cada recordatorio
       final notificationId = reminder.id * 10 + dayOfWeek;
       
+      final scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
+      
       await _notificationsPlugin.zonedSchedule(
         notificationId,
         reminder.title,
         reminder.description,
-        tz.TZDateTime.from(scheduledDate, tz.local),
+        scheduledTZ,
         _getNotificationDetails(reminder.type),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
@@ -246,6 +395,7 @@ class NotificationService extends ChangeNotifier {
       );
       
       debugPrint('Notificación programada: ID $notificationId para ${reminder.title} el día $dayOfWeek a las ${reminder.timeText}');
+      debugPrint('Fecha programada: $scheduledTZ');
     } catch (e) {
       debugPrint('Error al programar notificación semanal: $e');
     }
@@ -282,63 +432,52 @@ class NotificationService extends ChangeNotifier {
 
   /// Obtiene la configuración de notificación según el tipo
   NotificationDetails _getNotificationDetails(ReminderType type) {
-    String channelId;
-    String channelName;
-    String channelDescription;
-    Importance importance;
-    Priority priority;
-    bool playSound;
-    String? sound;
+    AndroidNotificationDetails androidDetails;
 
     switch (type) {
       case ReminderType.notification:
-        channelId = 'rosario_notifications';
-        channelName = 'Recordatorios del Rosario';
-        channelDescription = 'Notificaciones silenciosas para recordar el Rosario';
-        importance = Importance.defaultImportance;
-        priority = Priority.defaultPriority;
-        playSound = false;
-        sound = null;
+        androidDetails = const AndroidNotificationDetails(
+          _channelIdNotification,
+          _channelNameNotification,
+          channelDescription: _channelDescNotification,
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+          playSound: false,
+          enableVibration: false,
+          category: AndroidNotificationCategory.reminder,
+          visibility: NotificationVisibility.public,
+          autoCancel: true,
+          colorized: true,
+          color: Color(0xFF2563EB),
+          largeIcon: DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+          styleInformation: BigTextStyleInformation(''),
+        );
         break;
+        
       case ReminderType.alarm:
-        channelId = 'rosario_alarms';
-        channelName = 'Alarmas del Rosario';
-        channelDescription = 'Alarmas sonoras para recordar el Rosario';
-        importance = Importance.high;
-        priority = Priority.high;
-        playSound = true;
-        sound = 'alarm_sound';
-        break;
       case ReminderType.both:
-        channelId = 'rosario_both';
-        channelName = 'Recordatorios Completos del Rosario';
-        channelDescription = 'Notificaciones y alarmas para recordar el Rosario';
-        importance = Importance.high;
-        priority = Priority.high;
-        playSound = true;
-        sound = 'notification_sound';
+        androidDetails = const AndroidNotificationDetails(
+          _channelIdAlarm,
+          _channelNameAlarm,
+          channelDescription: _channelDescAlarm,
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+          enableLights: true,
+          ledColor: Color(0xFF2563EB),
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.alarm,
+          visibility: NotificationVisibility.public,
+          autoCancel: true,
+          ongoing: false,
+          colorized: true,
+          color: Color(0xFF2563EB),
+          largeIcon: DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+          styleInformation: BigTextStyleInformation(''),
+        );
         break;
     }
-
-    final androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      channelDescription: channelDescription,
-      importance: importance,
-      priority: priority,
-      playSound: playSound,
-      sound: sound != null ? RawResourceAndroidNotificationSound(sound) : null,
-      enableVibration: type != ReminderType.notification,
-      fullScreenIntent: type == ReminderType.alarm,
-      category: AndroidNotificationCategory.alarm,
-      visibility: NotificationVisibility.public,
-      autoCancel: true,
-      ongoing: false,
-      colorized: true,
-      color: const Color(0xFF2563EB),
-      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
-      styleInformation: const BigTextStyleInformation(''),
-    );
 
     const iosDetails = DarwinNotificationDetails(
       presentAlert: true,
@@ -385,8 +524,7 @@ class NotificationService extends ChangeNotifier {
 
   /// Genera un ID único para nuevos recordatorios
   int generateUniqueId() {
-    if (_reminders.isEmpty) return 1;
-    return _reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b) + 1;
+    return DateTime.now().millisecondsSinceEpoch;
   }
 
   /// Callback cuando se toca una notificación
@@ -398,7 +536,12 @@ class NotificationService extends ChangeNotifier {
 
   /// Obtiene las notificaciones pendientes (para debugging)
   Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    return await _notificationsPlugin.pendingNotificationRequests();
+    final pending = await _notificationsPlugin.pendingNotificationRequests();
+    debugPrint('Notificaciones pendientes: ${pending.length}');
+    for (final notification in pending) {
+      debugPrint('ID: ${notification.id}, Título: ${notification.title}');
+    }
+    return pending;
   }
 
   /// Cancela todas las notificaciones
@@ -413,5 +556,6 @@ class NotificationService extends ChangeNotifier {
     _reminders.clear();
     await _saveReminders();
     notifyListeners();
+    debugPrint('Todos los recordatorios eliminados');
   }
 }
