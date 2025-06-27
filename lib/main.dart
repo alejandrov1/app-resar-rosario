@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'resar_rosario_app.dart';
 import 'services/preferences_service.dart';
 import 'services/notification_service.dart';
@@ -7,7 +8,12 @@ import 'constants/app_theme.dart';
 import 'widgets/settings_drawer.dart';
 
 void main() async {
+  // Asegurar que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar el servicio de notificaciones ANTES de correr la app
+  final notificationService = NotificationService();
+  await notificationService.initialize();
   
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -22,15 +28,18 @@ void main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-
-   // Inicializar el servicio de notificaciones
-  try {
-    await NotificationService().initialize();
-  } catch (e) {
-    debugPrint('Error al inicializar NotificationService: $e');
-  }
   
-  runApp(const MyApp());
+  // SOLUCIÓN: Envolver la aplicación con MultiProvider para que los
+  // servicios estén disponibles en toda la app.
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => PreferencesService()),
+        ChangeNotifierProvider.value(value: notificationService),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -41,23 +50,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final PreferencesService _preferences = PreferencesService();
+  // Ahora obtenemos el servicio de preferencias desde el Provider
+  late PreferencesService _preferences;
 
   @override
-  void initState() {
-    super.initState();
-    _preferences.addListener(_onPreferencesChanged);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Escuchar los cambios en el provider
+    _preferences = context.watch<PreferencesService>();
   }
-
-  @override
-  void dispose() {
-    _preferences.removeListener(_onPreferencesChanged);
-    super.dispose();
-  }
-
-  void _onPreferencesChanged() {
-    setState(() {});
-  }
+  
+  // Ya no necesitamos el listener manual, el widget se reconstruirá solo.
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Modelo para representar un recordatorio del Rosario
 class RosarioReminder {
   final int id;
   final String title;
@@ -22,7 +21,7 @@ class RosarioReminder {
     required this.createdAt,
   });
 
-  /// Constructor para crear un recordatorio desde un Map (para SharedPreferences)
+  /// Constructor para crear un recordatorio desde un Map (leído de SharedPreferences)
   factory RosarioReminder.fromMap(Map<String, dynamic> map) {
     return RosarioReminder(
       id: map['id'] as int,
@@ -35,11 +34,14 @@ class RosarioReminder {
       daysOfWeek: List<int>.from(map['daysOfWeek'] as List),
       isActive: map['isActive'] as bool,
       type: ReminderType.values[map['type'] as int],
-      createdAt: DateTime.parse(map['createdAt'] as String),
+      // Para compatibilidad con recordatorios viejos que no tenían 'createdAt'
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'] as String)
+          : DateTime.now(),
     );
   }
 
-  /// Convierte el recordatorio a un Map (para SharedPreferences)
+  /// Convierte el recordatorio a un Map (para guardar en SharedPreferences)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -50,7 +52,7 @@ class RosarioReminder {
       'daysOfWeek': daysOfWeek,
       'isActive': isActive,
       'type': type.index,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(), // Guardar como texto estándar
     };
   }
 
@@ -84,13 +86,8 @@ class RosarioReminder {
     }
     
     const dayNames = {
-      1: 'Lun',
-      2: 'Mar',
-      3: 'Mié',
-      4: 'Jue',
-      5: 'Vie',
-      6: 'Sáb',
-      7: 'Dom',
+      1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue',
+      5: 'Vie', 6: 'Sáb', 7: 'Dom',
     };
     
     final sortedDays = List<int>.from(daysOfWeek)..sort();
@@ -103,13 +100,7 @@ class RosarioReminder {
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-
-  /// Verifica si el recordatorio debe activarse hoy
-  bool shouldActivateToday() {
-    final today = DateTime.now().weekday;
-    return isActive && daysOfWeek.contains(today);
-  }
-
+  
   @override
   String toString() {
     return 'RosarioReminder(id: $id, title: $title, time: $timeText, days: $daysText, active: $isActive)';
