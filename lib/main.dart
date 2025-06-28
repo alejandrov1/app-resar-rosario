@@ -11,9 +11,12 @@ void main() async {
   // Asegurar que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializar el servicio de notificaciones ANTES de correr la app
+  // ¡CRÍTICO! Inicializar el servicio de notificaciones ANTES de correr la app
   final notificationService = NotificationService();
   await notificationService.initialize();
+  
+  // Método de utilidad para limpiar recordatorios con IDs inválidos de versiones anteriores
+  await notificationService.cleanInvalidReminders();
   
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -29,12 +32,11 @@ void main() async {
     ),
   );
   
-  // SOLUCIÓN: Envolver la aplicación con MultiProvider para que los
-  // servicios estén disponibles en toda la app.
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => PreferencesService()),
+        // Proveer la instancia ya inicializada del servicio
         ChangeNotifierProvider.value(value: notificationService),
       ],
       child: const MyApp(),
@@ -50,17 +52,13 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Ahora obtenemos el servicio de preferencias desde el Provider
   late PreferencesService _preferences;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Escuchar los cambios en el provider
     _preferences = context.watch<PreferencesService>();
   }
-  
-  // Ya no necesitamos el listener manual, el widget se reconstruirá solo.
 
   @override
   Widget build(BuildContext context) {

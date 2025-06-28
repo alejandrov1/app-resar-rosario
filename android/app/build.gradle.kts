@@ -19,18 +19,18 @@ val flutterVersionName = localProperties.getProperty("flutter.versionName")
 
 android {
     namespace = "com.example.app_resar_rosario"
+    // Usa un SDK de compilación reciente (34 o superior es ideal)
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        // SOLUCIÓN: Actualizar a la versión 11 de Java
+        // SOLUCIÓN: Java 11 es necesario para la compatibilidad con plugins modernos
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        // SOLUCIÓN: Actualizar a la versión 11 de JVM
         jvmTarget = "11"
     }
 
@@ -39,6 +39,7 @@ android {
         versionCode = (flutterVersionCode ?: "1").toInt()
         versionName = flutterVersionName ?: "1.0"
         minSdk = 21
+        // targetSdk 34 es requerido para los permisos nuevos
         targetSdk = 34
         multiDexEnabled = true
     }
@@ -56,5 +57,6 @@ flutter {
 }
 
 dependencies {
+    // Necesario para compatibilidad con APIs de Java más nuevas
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

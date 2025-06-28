@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/reminder_model.dart';
-import '../services/notification_service.dart';
+import '../constants/app_constants.dart';
 
 class ReminderForm extends StatefulWidget {
   final RosarioReminder? reminder;
@@ -13,91 +14,197 @@ class ReminderForm extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ReminderFormState createState() => _ReminderFormState();
+  State<ReminderForm> createState() => _ReminderFormState();
 }
 
 class _ReminderFormState extends State<ReminderForm> {
   final _formKey = GlobalKey<FormState>();
-  late String _title;
+  late TextEditingController _titleController;
   late TimeOfDay _time;
   late Set<int> _selectedDays;
   late ReminderType _type;
+
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
     final reminder = widget.reminder;
     if (reminder != null) {
-      // Editando un recordatorio existente
-      _title = reminder.title;
+      _titleController = TextEditingController(text: reminder.title);
       _time = reminder.time;
       _selectedDays = Set.from(reminder.daysOfWeek);
       _type = reminder.type;
     } else {
-      // Creando uno nuevo
-      _title = 'Rezar el Santo Rosario';
+      _titleController = TextEditingController(text: 'Rezar el Santo Rosario');
       _time = TimeOfDay.now();
       _selectedDays = {};
-      _type = ReminderType.alarm;
+      _type = ReminderType.notification;
     }
   }
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+  
+  void _saveForm() {
+    final form = _formKey.currentState;
+    if (form == null || !form.validate()) return;
+    
+    if (_selectedDays.isEmpty) {
+      HapticFeedback.heavyImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Por favor, selecciona al menos un día'),
+          backgroundColor: Colors.orange.shade700,
+        ),
+      );
+      return;
+    }
+    
+    setState(() {
+      _isSaving = true;
+    });
+
+    form.save();
+    
+    final reminderToSave = RosarioReminder(
+      id: widget.reminder?.id ?? 0,
+      title: _titleController.text.trim(),
+      description: 'Es hora de tu oración diaria. El Señor está contigo.',
+      time: _time,
+      daysOfWeek: _selectedDays.toList()..sort(),
+      type: _type,
+      isActive: widget.reminder?.isActive ?? true,
+      createdAt: widget.reminder?.createdAt ?? DateTime.now(),
+    );
+    
+    // SOLUCIÓN: Llamar a la función onSave que ahora hará el trabajo asíncrono.
+    // El 'setState' de _isSaving se manejará desde la pantalla principal.
+    widget.onSave(reminderToSave);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.reminder == null ? 'Nuevo Recordatorio' : 'Editar Recordatorio',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              initialValue: _title,
-              decoration: const InputDecoration(
-                labelText: 'Título del Recordatorio',
-                border: OutlineInputBorder(),
+    // El SingleChildScrollView y Padding ahora envuelven el Form.
+    return SingleChildScrollView(
+      child: Padding(
+        // Padding para evitar que el teclado cubra el formulario.
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: AppConstants.spacingM,
+          right: AppConstants.spacingM,
+          top: AppConstants.spacingM
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.reminder == null ? 'Nuevo Recordatorio' : 'Editar Recordatorio',
+                    style: const TextStyle(
+                      fontSize: AppConstants.fontSizeL,
+                      fontWeight: FontWeight.bold,
+                      color: AppConstants.textPrimary,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    color: AppConstants.textSecondary,
+                  ),
+                ],
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor, ingresa un título';
-                }
-                return null;
-              },
-              onSaved: (value) => _title = value!,
-            ),
-            const SizedBox(height: 16),
-            _buildTimePicker(),
-            const SizedBox(height: 16),
-            _buildDaySelector(),
-             const SizedBox(height: 16),
-            _buildTypeSelector(),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _saveForm,
-              child: const Text('Guardar'),
-            ),
-          ],
+              const SizedBox(height: AppConstants.spacingM),
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: 'Título del Recordatorio',
+                  prefixIcon: const Icon(Icons.edit, color: AppConstants.primaryBlue),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                ),
+                maxLength: 50,
+                textCapitalization: TextCapitalization.sentences,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Por favor, ingresa un título';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppConstants.spacingS),
+              _buildTimePicker(),
+              const SizedBox(height: AppConstants.spacingM),
+              _buildDaySelector(),
+              const SizedBox(height: AppConstants.spacingM),
+              _buildTypeSelector(),
+              const SizedBox(height: AppConstants.spacingL),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _isSaving ? null : () => Navigator.pop(context),
+                      child: const Text('Cancelar'),
+                    ),
+                  ),
+                  const SizedBox(width: AppConstants.spacingS),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: _isSaving ? null : _saveForm,
+                      icon: _isSaving
+                          ? const SizedBox.shrink()
+                          : const Icon(Icons.save),
+                      label: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                            )
+                          : const Text('Guardar'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppConstants.spacingS),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // Los widgets _buildTimePicker, _buildDaySelector, etc. se quedan igual que antes.
   Widget _buildTimePicker() {
-    return ListTile(
-      title: const Text('Hora del recordatorio'),
-      subtitle: Text(_time.format(context)),
-      trailing: const Icon(Icons.edit_outlined),
+    return InkWell(
       onTap: () async {
+        HapticFeedback.lightImpact();
         final newTime = await showTimePicker(
           context: context,
           initialTime: _time,
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: AppConstants.primaryBlue,
+                  onPrimary: Colors.white,
+                  onSurface: AppConstants.textPrimary,
+                ),
+              ),
+              child: child!,
+            );
+          },
         );
         if (newTime != null) {
           setState(() {
@@ -105,37 +212,104 @@ class _ReminderFormState extends State<ReminderForm> {
           });
         }
       },
+      borderRadius: BorderRadius.circular(AppConstants.radiusS),
+      child: Container(
+        padding: const EdgeInsets.all(AppConstants.spacingS),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(AppConstants.radiusS),
+          color: Colors.grey.shade50,
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.access_time, color: AppConstants.primaryBlue),
+            const SizedBox(width: AppConstants.spacingS),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hora del recordatorio',
+                    style: TextStyle(
+                      fontSize: AppConstants.fontSizeXS,
+                      color: AppConstants.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _time.format(context),
+                    style: const TextStyle(
+                      fontSize: AppConstants.fontSizeM,
+                      fontWeight: FontWeight.w600,
+                      color: AppConstants.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.edit_outlined, color: AppConstants.textSecondary, size: 20),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildDaySelector() {
-    const days = {
-      'L': DateTime.monday, 'M': DateTime.tuesday, 'X': DateTime.wednesday,
-      'J': DateTime.thursday, 'V': DateTime.friday, 'S': DateTime.saturday, 'D': DateTime.sunday,
-    };
+    const days = [
+      {'short': 'L', 'value': DateTime.monday},
+      {'short': 'M', 'value': DateTime.tuesday},
+      {'short': 'X', 'value': DateTime.wednesday},
+      {'short': 'J', 'value': DateTime.thursday},
+      {'short': 'V', 'value': DateTime.friday},
+      {'short': 'S', 'value': DateTime.saturday},
+      {'short': 'D', 'value': DateTime.sunday},
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Repetir en los días:'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 4.0,
-          children: days.entries.map((entry) {
-            final isSelected = _selectedDays.contains(entry.value);
-            return FilterChip(
-              label: Text(entry.key),
-              selected: isSelected,
-              onSelected: (bool selected) {
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Repetir los días:'),
+            if (_selectedDays.isEmpty)
+              Text('Selecciona al menos un día', style: TextStyle(color: Colors.red.shade600)),
+          ],
+        ),
+        const SizedBox(height: AppConstants.spacingXS),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: days.map((day) {
+            final isSelected = _selectedDays.contains(day['value'] as int);
+            return InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
                 setState(() {
-                  if (selected) {
-                    _selectedDays.add(entry.value);
+                  if (isSelected) {
+                    _selectedDays.remove(day['value'] as int);
                   } else {
-                    _selectedDays.remove(entry.value);
+                    _selectedDays.add(day['value'] as int);
                   }
                 });
               },
+              borderRadius: BorderRadius.circular(AppConstants.radiusCircle),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppConstants.primaryBlue : Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    day['short'] as String,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppConstants.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             );
           }).toList(),
         ),
@@ -144,58 +318,26 @@ class _ReminderFormState extends State<ReminderForm> {
   }
 
   Widget _buildTypeSelector() {
-    return DropdownButtonFormField<ReminderType>(
-      value: _type,
-      decoration: const InputDecoration(
-        labelText: 'Tipo de Recordatorio',
-        border: OutlineInputBorder(),
-      ),
-      items: const [
-        DropdownMenuItem(
-          value: ReminderType.alarm,
-          child: Text('Alarma (con sonido)'),
-        ),
-        DropdownMenuItem(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Tipo de recordatorio:'),
+        const SizedBox(height: AppConstants.spacingXS),
+        RadioListTile<ReminderType>(
+          title: const Text('Notificación'),
+          subtitle: const Text('Recordatorio silencioso'),
           value: ReminderType.notification,
-          child: Text('Notificación (silenciosa)'),
+          groupValue: _type,
+          onChanged: (value) => setState(() => _type = value!),
+        ),
+        RadioListTile<ReminderType>(
+          title: const Text('Alarma'),
+          subtitle: const Text('Con sonido y vibración'),
+          value: ReminderType.alarm,
+          groupValue: _type,
+          onChanged: (value) => setState(() => _type = value!),
         ),
       ],
-      onChanged: (ReminderType? newValue) {
-        if (newValue != null) {
-          setState(() {
-            _type = newValue;
-          });
-        }
-      },
     );
-  }
-
-  void _saveForm() {
-    final form = _formKey.currentState;
-    if (form == null || !form.validate() || _selectedDays.isEmpty) {
-      if (_selectedDays.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Debes seleccionar al menos un día.'),
-            backgroundColor: Colors.orange,
-        ));
-      }
-      return;
-    }
-    form.save();
-    
-    final reminderToSave = RosarioReminder(
-      id: widget.reminder?.id ?? NotificationService().generateUniqueId(),
-      title: _title,
-      description: 'Es hora de tu oración diaria. El Señor esté contigo.',
-      time: _time,
-      daysOfWeek: _selectedDays.toList(),
-      type: _type,
-      isActive: widget.reminder?.isActive ?? true,
-      // SOLUCIÓN: Añadir el campo requerido 'createdAt'.
-      // Si estamos editando, usamos la fecha existente. Si es nuevo, usamos la fecha actual.
-      createdAt: widget.reminder?.createdAt ?? DateTime.now(),
-    );
-    
-    widget.onSave(reminderToSave);
   }
 }
