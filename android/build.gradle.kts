@@ -1,20 +1,19 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-//
-// Plugins and repositories are managed in settings.gradle.kts.
-// This file can be used for other global configurations.
+// Archivo de compilación de nivel superior
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 
-// Redirect the build output to the root of the Flutter project.
-rootProject.buildDir = rootProject.file("../build")
-subprojects {
-    project.buildDir = rootProject.file("${rootProject.buildDir}/${project.name}")
+    // Forzar Java 11 en TODOS los módulos del proyecto.
+    // Esta es la corrección clave para eliminar las advertencias y errores de compatibilidad.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "11"
+        }
+    }
 }
 
-// Ensure that the subproject ':app' is evaluated before any other subproject.
-subprojects {
-    evaluationDependsOn(":app")
-}
-
-// Task to clean the root build directory.
 tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }

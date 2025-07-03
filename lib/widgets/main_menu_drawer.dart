@@ -1,3 +1,5 @@
+// lib/widgets/main_menu_drawer.dart
+
 import 'package:app_resar_rosario/screens/agendar_rosario_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +28,7 @@ class MainMenuDrawer extends StatelessWidget {
           // Header del menú
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -66,7 +68,8 @@ class MainMenuDrawer extends StatelessWidget {
                               Text(
                                 'Santo Rosario',
                                 style: TextStyle(
-                                  fontSize: AppConstants.fontSizeL * preferences.textScaleFactor,
+                                  fontSize: AppConstants.fontSizeL *
+                                      preferences.textScaleFactor,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -74,7 +77,8 @@ class MainMenuDrawer extends StatelessWidget {
                               Text(
                                 'Menú Principal',
                                 style: TextStyle(
-                                  fontSize: AppConstants.fontSizeS * preferences.textScaleFactor,
+                                  fontSize: AppConstants.fontSizeS *
+                                      preferences.textScaleFactor,
                                   color: Colors.white.withOpacity(0.9),
                                 ),
                               ),
@@ -88,14 +92,14 @@ class MainMenuDrawer extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Lista de opciones
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
                 const SizedBox(height: AppConstants.spacingS),
-                
+
                 // Opción: Misterios del día
                 _buildMenuItem(
                   context: context,
@@ -117,7 +121,7 @@ class MainMenuDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                
+
                 _buildMenuItem(
                   context: context,
                   icon: Icons.schedule,
@@ -136,48 +140,12 @@ class MainMenuDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                
+
                 const Divider(height: 32),
-                
-                // Espacio para futuras opciones
-                // TODO: Agregar más opciones aquí
-                
-                // Ejemplo de estructura para futuras opciones (comentado):
-                /*
-                _buildMenuItem(
-                  context: context,
-                  icon: Icons.history,
-                  title: 'Historial',
-                  subtitle: 'Ver rosarios rezados',
-                  onTap: () {
-                    // TODO: Implementar navegación
-                  },
-                ),
-                
-                _buildMenuItem(
-                  context: context,
-                  icon: Icons.book,
-                  title: 'Oraciones',
-                  subtitle: 'Biblioteca de oraciones',
-                  onTap: () {
-                    // TODO: Implementar navegación
-                  },
-                ),
-                
-                _buildMenuItem(
-                  context: context,
-                  icon: Icons.notifications,
-                  title: 'Recordatorios',
-                  subtitle: 'Configurar notificaciones',
-                  onTap: () {
-                    // TODO: Implementar navegación
-                  },
-                ),
-                */
               ],
             ),
           ),
-          
+
           // Footer del menú
           Container(
             decoration: BoxDecoration(
@@ -193,7 +161,7 @@ class MainMenuDrawer extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
                     size: 16,
                     color: AppConstants.textSecondary,
@@ -202,7 +170,8 @@ class MainMenuDrawer extends StatelessWidget {
                   Text(
                     'Versión 1.0.0',
                     style: TextStyle(
-                      fontSize: AppConstants.fontSizeXS * preferences.textScaleFactor,
+                      fontSize: AppConstants.fontSizeXS *
+                          preferences.textScaleFactor,
                       color: AppConstants.textSecondary,
                     ),
                   ),
@@ -250,7 +219,7 @@ class MainMenuDrawer extends StatelessWidget {
           color: AppConstants.textSecondary,
         ),
       ),
-      trailing: Icon(
+      trailing: const Icon(
         Icons.arrow_forward_ios,
         size: 16,
         color: AppConstants.textSecondary,

@@ -10,28 +10,28 @@ import 'widgets/settings_drawer.dart';
 void main() async {
   // Asegurar que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // ¡CRÍTICO! Inicializar el servicio de notificaciones ANTES de correr la app
+
+  // Inicializar el servicio de notificaciones ANTES de correr la app
   final notificationService = NotificationService();
   await notificationService.initialize();
-  
-  // Método de utilidad para limpiar recordatorios con IDs inválidos de versiones anteriores
-  await notificationService.cleanInvalidReminders();
-  
+
+  // CORRECCIÓN: Se eliminó la siguiente línea que causaba el error
+  // await notificationService.cleanInvalidReminders();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
       themeMode: _preferences.themeMode,
       home: MainScreen(preferences: _preferences),
       debugShowCheckedModeBanner: false,
-      
+
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(

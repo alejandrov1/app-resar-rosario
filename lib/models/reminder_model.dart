@@ -9,6 +9,7 @@ class RosarioReminder {
   final bool isActive;
   final ReminderType type;
   final DateTime createdAt;
+  final String? sound;
 
   RosarioReminder({
     required this.id,
@@ -19,6 +20,7 @@ class RosarioReminder {
     required this.isActive,
     required this.type,
     required this.createdAt,
+    this.sound,
   });
 
   /// Constructor para crear un recordatorio desde un Map (leído de SharedPreferences)
@@ -38,6 +40,7 @@ class RosarioReminder {
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'] as String)
           : DateTime.now(),
+      sound: map['sound'] as String?,
     );
   }
 
@@ -52,7 +55,8 @@ class RosarioReminder {
       'daysOfWeek': daysOfWeek,
       'isActive': isActive,
       'type': type.index,
-      'createdAt': createdAt.toIso8601String(), // Guardar como texto estándar
+      'createdAt': createdAt.toIso8601String(),
+      'sound': sound,
     };
   }
 
@@ -66,6 +70,7 @@ class RosarioReminder {
     bool? isActive,
     ReminderType? type,
     DateTime? createdAt,
+    String? sound,
   }) {
     return RosarioReminder(
       id: id ?? this.id,
@@ -76,22 +81,15 @@ class RosarioReminder {
       isActive: isActive ?? this.isActive,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
+      sound: sound ?? this.sound,
     );
   }
 
   /// Obtiene el nombre de los días de la semana en formato legible
   String get daysText {
-    if (daysOfWeek.length == 7) {
-      return 'Todos los días';
-    }
-    
-    const dayNames = {
-      1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue',
-      5: 'Vie', 6: 'Sáb', 7: 'Dom',
-    };
-    
-    final sortedDays = List<int>.from(daysOfWeek)..sort();
-    return sortedDays.map((day) => dayNames[day]).join(', ');
+    if (daysOfWeek.length == 7) return 'Todos los días';
+    const dayNames = {1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom'};
+    return daysOfWeek.map((day) => dayNames[day]).join(', ');
   }
 
   /// Obtiene la hora en formato legible
@@ -100,7 +98,7 @@ class RosarioReminder {
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-  
+
   @override
   String toString() {
     return 'RosarioReminder(id: $id, title: $title, time: $timeText, days: $daysText, active: $isActive)';
@@ -116,12 +114,7 @@ class RosarioReminder {
   int get hashCode => id.hashCode;
 }
 
-/// Tipos de recordatorio disponibles
-enum ReminderType {
-  notification,
-  alarm,
-  both,
-}
+enum ReminderType { notification, alarm }
 
 extension ReminderTypeExtension on ReminderType {
   String get displayName {
@@ -130,8 +123,6 @@ extension ReminderTypeExtension on ReminderType {
         return 'Notificación';
       case ReminderType.alarm:
         return 'Alarma';
-      case ReminderType.both:
-        return 'Notificación y Alarma';
     }
   }
 
@@ -141,8 +132,6 @@ extension ReminderTypeExtension on ReminderType {
         return 'Solo notificación silenciosa';
       case ReminderType.alarm:
         return 'Alarma con sonido';
-      case ReminderType.both:
-        return 'Notificación y alarma';
     }
   }
 
@@ -152,8 +141,6 @@ extension ReminderTypeExtension on ReminderType {
         return Icons.notifications;
       case ReminderType.alarm:
         return Icons.alarm;
-      case ReminderType.both:
-        return Icons.notifications_active;
     }
   }
 }
@@ -161,31 +148,31 @@ extension ReminderTypeExtension on ReminderType {
 /// Plantillas predefinidas para recordatorios comunes
 class ReminderTemplates {
   static List<ReminderTemplate> get templates => [
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Matutino',
       description: 'Momento perfecto para comenzar el día con oración',
-      time: const TimeOfDay(hour: 7, minute: 0),
+      time: TimeOfDay(hour: 7, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7], // Todos los días
       type: ReminderType.notification,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Vespertino',
       description: 'Termina tu día con la oración del Rosario',
-      time: const TimeOfDay(hour: 19, minute: 0),
+      time: TimeOfDay(hour: 19, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7], // Todos los días
       type: ReminderType.notification,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Dominical',
       description: 'Dedica tiempo especial los domingos',
-      time: const TimeOfDay(hour: 10, minute: 0),
+      time: TimeOfDay(hour: 10, minute: 0),
       daysOfWeek: [7], // Solo domingos
       type: ReminderType.alarm,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario de Mediodía',
       description: 'Una pausa espiritual en medio del día',
-      time: const TimeOfDay(hour: 12, minute: 0),
+      time: TimeOfDay(hour: 12, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5], // Días laborales
       type: ReminderType.notification,
     ),

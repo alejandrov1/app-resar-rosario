@@ -176,7 +176,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                                   );
                                 },
                               );
-                            }).toList(),
+                            }),
                             
                             const SizedBox(height: AppConstants.spacingS),
                             
@@ -325,7 +325,7 @@ class _MisteriosDelDiaState extends State<MisteriosDelDia>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [
                         AppConstants.primaryBlue,
                         AppConstants.secondaryBlue,
