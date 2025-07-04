@@ -1,19 +1,31 @@
-// Archivo de compilación de nivel superior
+plugins {
+    // Aplica plugins aquí si es necesario a nivel de raíz
+}
+
+buildscript {
+    val kotlinVersion = "1.9.23" // Definición de la variable en Kotlin
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.2.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
-
-    // Forzar Java 11 en TODOS los módulos del proyecto.
-    // Esta es la corrección clave para eliminar las advertencias y errores de compatibilidad.
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "11"
-        }
-    }
 }
 
-tasks.register<Delete>("clean") {
+rootProject.buildDir = file("../build")
+subprojects {
+    project.buildDir = File(rootProject.buildDir, project.name)
+}
+
+tasks.register("clean", Delete::class) {
     delete(rootProject.buildDir)
 }

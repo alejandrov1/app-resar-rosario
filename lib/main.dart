@@ -10,38 +10,57 @@ import 'widgets/settings_drawer.dart';
 void main() async {
   // Asegurar que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicializar el servicio de notificaciones ANTES de correr la app
-  final notificationService = NotificationService();
-  await notificationService.initialize();
-
-  // CORRECCIÓN: Se eliminó la siguiente línea que causaba el error
-  // await notificationService.cleanInvalidReminders();
-
-  SystemChrome.setPreferredOrientations([
+  
+  // Configuración de orientación
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-
+  
+  // Configuración de la barra de estado
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => PreferencesService()),
-        // Proveer la instancia ya inicializada del servicio
-        ChangeNotifierProvider.value(value: notificationService),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  
+  try {
+    // Inicializar el servicio de notificaciones
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    
+    // Limpiar recordatorios con IDs inválidos si es necesario
+    if (notificationService.isInitialized) {
+      await notificationService.cleanInvalidReminders();
+    }
+    
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => PreferencesService()),
+          ChangeNotifierProvider.value(value: notificationService),
+        ],
+        child: const MyApp(),
+      ),
+    );
+  } catch (e) {
+    debugPrint('Error al inicializar la app: $e');
+    // Ejecutar la app sin notificaciones si hay error
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => PreferencesService()),
+          ChangeNotifierProvider(create: (_) => NotificationService()),
+        ],
+        child: const MyApp(),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -51,8 +70,25 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late PreferencesService _preferences;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('App lifecycle state: $state');
+  }
 
   @override
   void didChangeDependencies() {
@@ -69,10 +105,11 @@ class _MyAppState extends State<MyApp> {
       themeMode: _preferences.themeMode,
       home: MainScreen(preferences: _preferences),
       debugShowCheckedModeBanner: false,
-
+      
       builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
+          data: mediaQuery.copyWith(
             textScaler: TextScaler.linear(_preferences.textScaleFactor),
             highContrast: _preferences.useHighContrast,
           ),
