@@ -1,60 +1,44 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
-}
-
-val flutterVersionCode: String = localProperties.getProperty("flutter.versionCode") ?: "1"
-val flutterVersionName: String = localProperties.getProperty("flutter.versionName") ?: "1.0"
-
 android {
     namespace = "com.example.app_resar_rosario"
-    compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    // flutter_local_notifications 22 exige compileSdk 36 o más.
+    compileSdk = maxOf(flutter.compileSdkVersion, 36)
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // Necesario para las notificaciones programadas.
         isCoreLibraryDesugaringEnabled = true
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-
-    sourceSets {
-        getByName("main").java.srcDirs("src/main/kotlin")
     }
 
     defaultConfig {
         applicationId = "com.example.app_resar_rosario"
-        minSdk = 21
-        targetSdk = 35
-        versionCode = flutterVersionCode.toInt()
-        versionName = flutterVersionName
-    }
-
-    signingConfigs {
-        // Flutter se encarga de la firma en el proceso de build.
-        // Este bloque puede estar vacío o configurado si tienes un keystore.
+        // flutter_local_notifications 21+ exige Android 7.0 (API 24).
+        minSdk = maxOf(flutter.minSdkVersion, 24)
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
-        getByName("release") {
-            // Habilitar la reducción de código y ofuscación para release
+        release {
+            // Firma provisional con la clave de depuración; la firma real llega en la Fase 5.
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
-            // Flutter maneja la firma, pero puedes especificarla aquí si es necesario
-            // signingConfig = signingConfigs.getByName("debug") // O tu config de release
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -63,5 +47,5 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

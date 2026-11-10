@@ -56,7 +56,7 @@ class NotificationService extends ChangeNotifier {
       );
 
       await _notificationsPlugin.initialize(
-        initSettings,
+        settings: initSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
@@ -150,13 +150,12 @@ class NotificationService extends ChangeNotifier {
       final notificationId = _generateNotificationId(reminder.id, dayOfWeek);
       
       await _notificationsPlugin.zonedSchedule(
-        notificationId,
-        reminder.title,
-        reminder.description,
-        scheduledDate,
-        _getNotificationDetails(reminder.type),
+        id: notificationId,
+        title: reminder.title,
+        body: reminder.description,
+        scheduledDate: scheduledDate,
+        notificationDetails: _getNotificationDetails(reminder.type),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
         payload: 'reminder_${reminder.id}',
       );
@@ -224,7 +223,7 @@ class NotificationService extends ChangeNotifier {
   Future<void> _cancelReminderNotifications(RosarioReminder reminder) async {
     for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
       final notificationId = _generateNotificationId(reminder.id, dayOfWeek);
-      await _notificationsPlugin.cancel(notificationId);
+      await _notificationsPlugin.cancel(id: notificationId);
     }
     debugPrint('Notificaciones canceladas para: ${reminder.title}');
   }
@@ -346,10 +345,10 @@ class NotificationService extends ChangeNotifier {
   Future<bool> sendTestNotification() async {
     try {
       await _notificationsPlugin.show(
-        999999,
-        '¡Prueba de Notificación del Rosario!',
-        'Si ves y escuchas esto, las notificaciones funcionan correctamente.',
-        _getNotificationDetails(ReminderType.alarm),
+        id: 999999,
+        title: '¡Prueba de Notificación del Rosario!',
+        body: 'Si ves y escuchas esto, las notificaciones funcionan correctamente.',
+        notificationDetails: _getNotificationDetails(ReminderType.alarm),
         payload: 'test_notification',
       );
       return true;
