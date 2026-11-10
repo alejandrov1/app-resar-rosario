@@ -22,6 +22,7 @@ class RosaryBeadsWidget extends StatelessWidget {
           children: List.generate(total, (index) {
             final isCompleted = index <= current;
             return Container(
+              key: ValueKey('cuenta-$index'),
               width: 12,
               height: 12,
               decoration: BoxDecoration(

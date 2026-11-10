@@ -1,43 +1,28 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:app_resar_rosario/widgets/rosary_beads_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('RosaryBeadsWidget Tests', () {
-    testWidgets('Debe mostrar el número correcto de cuentas', 
-      (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RosaryBeadsWidget(
-              current: 3,
-              total: 10,
-            ),
-          ),
-        ),
-      );
+  Future<void> mostrar(WidgetTester tester, {required int actual}) {
+    return tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: RosaryBeadsWidget(current: actual, total: 10)),
+      ),
+    );
+  }
 
-      // Buscar todos los contenedores que representan cuentas
-      final beadFinder = find.byType(Container);
-      // +1 porque hay un Container padre en el widget
-      expect(beadFinder, findsNWidgets(11));
-    });
+  testWidgets('muestra una cuenta por cada Ave María', (tester) async {
+    await mostrar(tester, actual: 3);
+    for (var i = 0; i < 10; i++) {
+      expect(find.byKey(ValueKey('cuenta-$i')), findsOneWidget);
+    }
+  });
 
-    testWidgets('Las cuentas completadas deben tener color diferente', 
-      (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RosaryBeadsWidget(
-              current: 5,
-              total: 10,
-            ),
-          ),
-        ),
-      );
-
-      // Verificar que el widget se renderiza sin errores
-      expect(find.byType(RosaryBeadsWidget), findsOneWidget);
-    });
+  testWidgets('las cuentas hasta la actual se ven distintas a las pendientes', (tester) async {
+    await mostrar(tester, actual: 3);
+    BoxDecoration decoracion(int i) =>
+        tester.widget<Container>(find.byKey(ValueKey('cuenta-$i'))).decoration! as BoxDecoration;
+    expect(decoracion(3).color, equals(decoracion(0).color));
+    expect(decoracion(3).color, isNot(equals(decoracion(4).color)));
   });
 }

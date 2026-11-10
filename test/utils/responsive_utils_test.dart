@@ -56,7 +56,6 @@ void main() {
         MediaQuery(
           data: const MediaQueryData(
             size: Size(400, 800),
-            orientation: Orientation.portrait,
           ),
           child: Builder(
             builder: (context) {
@@ -72,7 +71,6 @@ void main() {
         MediaQuery(
           data: const MediaQueryData(
             size: Size(800, 400),
-            orientation: Orientation.landscape,
           ),
           child: Builder(
             builder: (context) {
