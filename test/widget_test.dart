@@ -1,3 +1,4 @@
+import 'package:app_resar_rosario/logic/rosario_session.dart';
 import 'package:app_resar_rosario/main.dart';
 import 'package:app_resar_rosario/services/notification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: preferencias),
           ChangeNotifierProvider(create: (_) => NotificationService()),
+          ChangeNotifierProvider(create: (_) => RosarioSession(reloj: () => lunes)),
         ],
         child: const MyApp(),
       ),

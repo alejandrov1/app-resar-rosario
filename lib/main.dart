@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'resar_rosario_app.dart';
 import 'services/notification_service.dart';
+import 'logic/rosario_session.dart';
 import 'services/preferences_service.dart';
 import 'widgets/settings_drawer.dart';
 
@@ -27,6 +28,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider.value(value: preferencias),
         ChangeNotifierProvider.value(value: notificaciones),
+        ChangeNotifierProvider(create: (_) => RosarioSession()),
       ],
       child: const MyApp(),
     ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_constants.dart';
 import '../widgets/rosary_image_widget.dart';
-import '../widgets/main_menu_drawer.dart';
+import '../widgets/app_drawer.dart';
 
 class InicioScreen extends StatefulWidget {
   final String todayMystery;
@@ -78,11 +78,7 @@ class _InicioScreenState extends State<InicioScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     
     return Scaffold(
-      drawer: MainMenuDrawer(
-        preferences: widget.preferences,
-        todayMystery: widget.todayMystery,
-        todayDay: widget.todayDay,
-      ),
+      drawer: const AppDrawer(),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
