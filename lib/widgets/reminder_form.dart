@@ -8,10 +8,10 @@ class ReminderForm extends StatefulWidget {
   final Function(RosarioReminder) onSave;
 
   const ReminderForm({
-    Key? key,
+    super.key,
     this.reminder,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<ReminderForm> createState() => _ReminderFormState();

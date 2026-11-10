@@ -160,31 +160,31 @@ extension ReminderTypeExtension on ReminderType {
 /// Plantillas predefinidas para recordatorios comunes
 class ReminderTemplates {
   static List<ReminderTemplate> get templates => [
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Matutino',
       description: 'Momento perfecto para comenzar el día con oración',
-      time: const TimeOfDay(hour: 7, minute: 0),
+      time: TimeOfDay(hour: 7, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
       type: ReminderType.notification,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Vespertino',
       description: 'Termina tu día con la oración del Rosario',
-      time: const TimeOfDay(hour: 19, minute: 0),
+      time: TimeOfDay(hour: 19, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
       type: ReminderType.notification,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario Dominical',
       description: 'Dedica tiempo especial los domingos',
-      time: const TimeOfDay(hour: 10, minute: 0),
+      time: TimeOfDay(hour: 10, minute: 0),
       daysOfWeek: [7],
       type: ReminderType.alarm,
     ),
-    ReminderTemplate(
+    const ReminderTemplate(
       title: 'Rosario de Mediodía',
       description: 'Una pausa espiritual en medio del día',
-      time: const TimeOfDay(hour: 12, minute: 0),
+      time: TimeOfDay(hour: 12, minute: 0),
       daysOfWeek: [1, 2, 3, 4, 5],
       type: ReminderType.notification,
     ),
