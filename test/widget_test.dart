@@ -1,15 +1,17 @@
 import 'package:app_resar_rosario/main.dart';
 import 'package:app_resar_rosario/services/notification_service.dart';
-import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
+import 'support/app_harness.dart';
+
 void main() {
   testWidgets('la app arranca en la pantalla de inicio', (tester) async {
+    final preferencias = await preferenciasDePrueba();
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => PreferencesService()),
+          ChangeNotifierProvider.value(value: preferencias),
           ChangeNotifierProvider(create: (_) => NotificationService()),
         ],
         child: const MyApp(),

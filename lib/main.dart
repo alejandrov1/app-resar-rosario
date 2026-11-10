@@ -1,129 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'resar_rosario_app.dart';
-import 'services/preferences_service.dart';
-import 'services/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'constants/app_theme.dart';
+import 'resar_rosario_app.dart';
+import 'services/notification_service.dart';
+import 'services/preferences_service.dart';
 import 'widgets/settings_drawer.dart';
 
-void main() async {
-  // Asegurar que los bindings de Flutter estén inicializados
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Configuración de orientación
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-  
-  // Configuración de la barra de estado
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.white,
-      systemNavigationBarIconBrightness: Brightness.dark,
+
+  final preferencias = PreferencesService(await SharedPreferences.getInstance());
+  final notificaciones = NotificationService();
+  try {
+    await notificaciones.initialize();
+    if (notificaciones.isInitialized) {
+      await notificaciones.cleanInvalidReminders();
+    }
+  } catch (e) {
+    debugPrint('Error al inicializar las notificaciones: $e');
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: preferencias),
+        ChangeNotifierProvider.value(value: notificaciones),
+      ],
+      child: const MyApp(),
     ),
   );
-  
-  try {
-    // Inicializar el servicio de notificaciones
-    final notificationService = NotificationService();
-    await notificationService.initialize();
-    
-    // Limpiar recordatorios con IDs inválidos si es necesario
-    if (notificationService.isInitialized) {
-      await notificationService.cleanInvalidReminders();
-    }
-    
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => PreferencesService()),
-          ChangeNotifierProvider.value(value: notificationService),
-        ],
-        child: const MyApp(),
-      ),
-    );
-  } catch (e) {
-    debugPrint('Error al inicializar la app: $e');
-    // Ejecutar la app sin notificaciones si hay error
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => PreferencesService()),
-          ChangeNotifierProvider(create: (_) => NotificationService()),
-        ],
-        child: const MyApp(),
-      ),
-    );
-  }
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  late PreferencesService _preferences;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('App lifecycle state: $state');
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _preferences = context.watch<PreferencesService>();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final preferencias = context.watch<PreferencesService>();
     return MaterialApp(
       title: 'Santo Rosario',
-      theme: AppTheme.lightTheme(_preferences.textScaleFactor),
-      darkTheme: AppTheme.darkTheme(_preferences.textScaleFactor),
-      themeMode: _preferences.themeMode,
-      home: MainScreen(preferences: _preferences),
       debugShowCheckedModeBanner: false,
-      
-      builder: (context, child) {
-        final mediaQuery = MediaQuery.of(context);
-        return MediaQuery(
-          data: mediaQuery.copyWith(
-            textScaler: TextScaler.linear(_preferences.textScaleFactor),
-            highContrast: _preferences.useHighContrast,
-          ),
-          child: child!,
-        );
-      },
+      theme: AppTheme.lightTheme(preferencias.textScaleFactor),
+      darkTheme: AppTheme.darkTheme(preferencias.textScaleFactor),
+      themeMode: preferencias.themeMode,
+      home: MainScreen(preferences: preferencias),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(preferencias.textScaleFactor),
+          highContrast: preferencias.useHighContrast,
+        ),
+        child: child!,
+      ),
     );
   }
 }
 
 class MainScreen extends StatelessWidget {
-  final PreferencesService preferences;
-
   const MainScreen({super.key, required this.preferences});
+
+  final PreferencesService preferences;
 
   @override
   Widget build(BuildContext context) {
