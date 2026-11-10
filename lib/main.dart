@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'theme/app_theme.dart';
-import 'resar_rosario_app.dart';
+import 'screens/principal_screen.dart';
 import 'services/notification_service.dart';
 import 'logic/rosario_session.dart';
 import 'services/preferences_service.dart';
@@ -73,7 +73,7 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SettingsDrawer(preferences: preferences),
-      body: RosarioApp(preferences: preferences),
+      body: const PrincipalScreen(),
     );
   }
 }
