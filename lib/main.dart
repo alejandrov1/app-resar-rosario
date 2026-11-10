@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'constants/app_theme.dart';
+import 'theme/app_theme.dart';
 import 'resar_rosario_app.dart';
 import 'services/notification_service.dart';
 import 'services/preferences_service.dart';
@@ -42,14 +42,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Santo Rosario',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme(preferencias.textScaleFactor),
-      darkTheme: AppTheme.darkTheme(preferencias.textScaleFactor),
+      theme: AppTheme.claro(
+        altoContraste: preferencias.useHighContrast,
+        botonesGrandes: preferencias.useLargeButtons,
+      ),
+      darkTheme: AppTheme.oscuro(
+        altoContraste: preferencias.useHighContrast,
+        botonesGrandes: preferencias.useLargeButtons,
+      ),
       themeMode: preferencias.themeMode,
       home: MainScreen(preferences: preferencias),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(
           textScaler: TextScaler.linear(preferencias.textScaleFactor),
-          highContrast: preferencias.useHighContrast,
         ),
         child: child!,
       ),
