@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
 import '../widgets/paso_oracion_layout.dart';
+import '../widgets/letanias_widget.dart';
 import '../widgets/rosary_beads_widget.dart';
 
 /// Pantalla única para todo el recorrido del rosario.
@@ -131,7 +132,10 @@ class _Contenido extends StatelessWidget {
           ),
           const SizedBox(height: AppTokens.espacioM),
         ],
-        Text(paso.oracion.text, style: AppTheme.oracion(context)),
+        if (paso.oracion.type == 'letanias')
+          LetaniasWidget(texto: paso.oracion.text, colores: colores)
+        else
+          Text(paso.oracion.text, style: AppTheme.oracion(context)),
       ],
     );
   }
