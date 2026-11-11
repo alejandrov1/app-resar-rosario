@@ -47,7 +47,7 @@ abstract final class AppTheme {
           side: altoContraste ? BorderSide(color: esquema.onSurface, width: 2) : BorderSide.none,
         ),
       ),
-      extensions: const <ThemeExtension<dynamic>>[SeccionesTema.claro],
+      extensions: <ThemeExtension<dynamic>>[SeccionesTema.para(brillo: brillo, altoContraste: altoContraste)],
     );
   }
 }

@@ -99,6 +99,107 @@ class SeccionesTema extends ThemeExtension<SeccionesTema> {
     bordeCuenta: Color(0xFFB45309),
   );
 
+  static const oscuro = SeccionesTema(
+    iniciales: SeccionColores(
+      fondo: [Color(0xFF0B1220), Color(0xFF172554)],
+      boton: Color(0xFF1E3A8A),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFF1E2B4D),
+      acento: Color(0xFFBFDBFE),
+    ),
+    misterio: SeccionColores(
+      fondo: [Color(0xFF140821), Color(0xFF3B0764)],
+      boton: Color(0xFF581C87),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFF2E1A47),
+      acento: Color(0xFFE9D5FF),
+    ),
+    finales: SeccionColores(
+      fondo: [Color(0xFF04140A), Color(0xFF052E16)],
+      boton: Color(0xFF14532D),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFF15301F),
+      acento: Color(0xFFBBF7D0),
+    ),
+    fondoInicio: [Color(0xFF0B1220), Color(0xFF0F1E3D), Color(0xFF172554)],
+    tituloInicio: Color(0xFFBFDBFE),
+    cuenta: Color(0xFFFBBF24),
+    bordeCuenta: Color(0xFFFDE68A),
+  );
+
+  /// Fondo blanco liso, texto casi negro y bordes marcados.
+  static const altoContrasteClaro = SeccionesTema(
+    iniciales: SeccionColores(
+      fondo: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+      boton: Color(0xFF172554),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFFFFFFFF),
+      acento: Color(0xFF172554),
+      borde: Color(0xFF172554),
+    ),
+    misterio: SeccionColores(
+      fondo: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+      boton: Color(0xFF3B0764),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFFFFFFFF),
+      acento: Color(0xFF3B0764),
+      borde: Color(0xFF3B0764),
+    ),
+    finales: SeccionColores(
+      fondo: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+      boton: Color(0xFF052E16),
+      sobreBoton: Color(0xFFFFFFFF),
+      suave: Color(0xFFFFFFFF),
+      acento: Color(0xFF052E16),
+      borde: Color(0xFF052E16),
+    ),
+    fondoInicio: [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+    tituloInicio: Color(0xFF172554),
+    cuenta: Color(0xFF000000),
+    bordeCuenta: Color(0xFF000000),
+  );
+
+  /// Fondo negro liso, texto claro y bordes marcados.
+  static const altoContrasteOscuro = SeccionesTema(
+    iniciales: SeccionColores(
+      fondo: [Color(0xFF000000), Color(0xFF000000)],
+      boton: Color(0xFFBFDBFE),
+      sobreBoton: Color(0xFF000000),
+      suave: Color(0xFF000000),
+      acento: Color(0xFFBFDBFE),
+      borde: Color(0xFFBFDBFE),
+    ),
+    misterio: SeccionColores(
+      fondo: [Color(0xFF000000), Color(0xFF000000)],
+      boton: Color(0xFFE9D5FF),
+      sobreBoton: Color(0xFF000000),
+      suave: Color(0xFF000000),
+      acento: Color(0xFFE9D5FF),
+      borde: Color(0xFFE9D5FF),
+    ),
+    finales: SeccionColores(
+      fondo: [Color(0xFF000000), Color(0xFF000000)],
+      boton: Color(0xFFBBF7D0),
+      sobreBoton: Color(0xFF000000),
+      suave: Color(0xFF000000),
+      acento: Color(0xFFBBF7D0),
+      borde: Color(0xFFBBF7D0),
+    ),
+    fondoInicio: [Color(0xFF000000), Color(0xFF000000), Color(0xFF000000)],
+    tituloInicio: Color(0xFFFFFFFF),
+    cuenta: Color(0xFFFFFFFF),
+    bordeCuenta: Color(0xFFFFFFFF),
+  );
+
+  /// Variante que corresponde al tema.
+  static SeccionesTema para({required Brightness brillo, required bool altoContraste}) =>
+      switch ((brillo, altoContraste)) {
+        (Brightness.light, false) => claro,
+        (Brightness.dark, false) => oscuro,
+        (Brightness.light, true) => altoContrasteClaro,
+        (Brightness.dark, true) => altoContrasteOscuro,
+      };
+
   SeccionColores de(SeccionRosario seccion) => switch (seccion) {
         SeccionRosario.iniciales => iniciales,
         SeccionRosario.misterio => misterio,
