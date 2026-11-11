@@ -69,4 +69,35 @@ void main() {
     final r = guardados.single;
     expect([r.id, r.title, r.daysOfWeek, r.isActive], [5, 'Mañana', [2], false]);
   });
+
+  testWidgets('una plantilla llena el formulario', (tester) async {
+    final guardados = await mostrar(tester);
+    await tester.tap(find.text('Rosario Matutino'));
+    await tester.pump();
+    await guardar(tester);
+
+    final r = guardados.single;
+    expect(r.title, 'Rosario Matutino');
+    expect(r.description, 'Momento perfecto para comenzar el día con oración');
+    expect(r.time, const TimeOfDay(hour: 7, minute: 0));
+    expect(r.daysOfWeek, [1, 2, 3, 4, 5, 6, 7]);
+    expect(r.type, ReminderType.notification);
+  });
+
+  testWidgets('al editar no se muestran plantillas', (tester) async {
+    await mostrar(
+      tester,
+      recordatorio: RosarioReminder(
+        id: 1,
+        title: 'Noche',
+        description: 'd',
+        time: const TimeOfDay(hour: 21, minute: 0),
+        daysOfWeek: const [7],
+        isActive: true,
+        type: ReminderType.alarm,
+        createdAt: DateTime(2026, 1, 1),
+      ),
+    );
+    expect(find.text('Plantillas rápidas'), findsNothing);
+  });
 }

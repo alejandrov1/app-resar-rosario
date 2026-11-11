@@ -46,6 +46,20 @@ class _ReminderFormState extends State<ReminderForm> {
     if (hora != null) setState(() => _hora = hora);
   }
 
+  void _aplicar(ReminderTemplate plantilla) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _titulo.text = plantilla.title;
+      _descripcion = plantilla.description;
+      _hora = plantilla.time;
+      _dias
+        ..clear()
+        ..addAll(plantilla.daysOfWeek);
+      _tipo = plantilla.type;
+      _faltanDias = false;
+    });
+  }
+
   void _guardar() {
     final valido = _formulario.currentState!.validate();
     setState(() => _faltanDias = _dias.isEmpty);
@@ -86,6 +100,23 @@ class _ReminderFormState extends State<ReminderForm> {
             children: [
               Text(widget.reminder == null ? 'Nuevo recordatorio' : 'Editar recordatorio', style: textos.titleLarge),
               const SizedBox(height: AppTokens.espacioL),
+              if (widget.reminder == null) ...[
+                Text('Plantillas rápidas', style: textos.titleSmall),
+                const SizedBox(height: AppTokens.espacioS),
+                Wrap(
+                  spacing: AppTokens.espacioS,
+                  runSpacing: AppTokens.espacioS,
+                  children: [
+                    for (final plantilla in ReminderTemplates.templates)
+                      ActionChip(
+                        avatar: Icon(plantilla.type.icon, size: 18),
+                        label: Text(plantilla.title),
+                        onPressed: () => _aplicar(plantilla),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.espacioL),
+              ],
               TextFormField(
                 controller: _titulo,
                 maxLength: 50,

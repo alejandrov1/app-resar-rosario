@@ -24,6 +24,7 @@ void main() {
   Future<void> crearRecordatorioDelLunes(WidgetTester tester) async {
     await tester.tap(find.text('Nuevo'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('L'));
     await tester.tap(find.text('L'));
     await tester.ensureVisible(find.text('Guardar'));
     await tester.tap(find.text('Guardar'));
