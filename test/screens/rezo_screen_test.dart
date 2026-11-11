@@ -46,7 +46,7 @@ void main() {
   testWidgets('Ave María con sus cuentas', (tester) async {
     await mostrarEnPaso(tester, 5);
     expect(find.text('Ave María (1°)'), findsOneWidget);
-    expect(find.text('Ave María 1 de 10'), findsOneWidget);
+    expect(find.text('Misterio 1/5 · Ave María 1/10'), findsOneWidget);
     expect(find.byType(RosaryBeadsWidget), findsOneWidget);
   });
 

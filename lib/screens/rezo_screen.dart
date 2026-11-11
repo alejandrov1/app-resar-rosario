@@ -9,6 +9,7 @@ import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
 import '../widgets/paso_oracion_layout.dart';
 import '../widgets/letanias_widget.dart';
+import '../widgets/progreso_rosario.dart';
 import '../widgets/rosary_beads_widget.dart';
 
 /// Pantalla única para todo el recorrido del rosario.
@@ -33,6 +34,7 @@ class RezoScreen extends StatelessWidget {
         colores: colores,
         titulo: tituloDelPaso(paso, sesion.tipoMisterio),
         encabezado: _Encabezado(paso: paso, sesion: sesion, colores: colores),
+        progreso: ProgresoRosario(paso: paso, progreso: sesion.progreso, colores: colores),
         contenido: _Contenido(paso: paso, sesion: sesion, colores: colores),
         onAnterior: sesion.indice > 0 ? sesion.anterior : null,
         onSiguiente: () {
@@ -124,12 +126,6 @@ class _Contenido extends StatelessWidget {
         ],
         if (repeticion != null) ...[
           RosaryBeadsWidget(current: repeticion, total: paso.oracion.count!),
-          const SizedBox(height: AppTokens.espacioS),
-          Text(
-            'Ave María ${repeticion + 1} de ${paso.oracion.count}',
-            textAlign: TextAlign.center,
-            style: textos.labelLarge?.copyWith(color: colores.acento),
-          ),
           const SizedBox(height: AppTokens.espacioM),
         ],
         if (paso.oracion.type == 'letanias')
