@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.app_resar_rosario"
+    namespace = "com.alejandrovaldez.santorosario"
     // flutter_local_notifications 22 exige compileSdk 36 o más.
     compileSdk = maxOf(flutter.compileSdkVersion, 36)
     ndkVersion = flutter.ndkVersion
@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.app_resar_rosario"
+        applicationId = "com.alejandrovaldez.santorosario"
         // flutter_local_notifications 21+ exige Android 7.0 (API 24).
         minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
