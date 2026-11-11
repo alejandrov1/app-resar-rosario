@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/principal_screen.dart';
 import 'services/notification_service.dart';
+import 'services/notifications_gateway.dart';
 import 'services/zona_horaria.dart';
 import 'logic/rosario_session.dart';
 import 'services/preferences_service.dart';
@@ -15,15 +16,8 @@ Future<void> main() async {
   await configurarZonaHoraria();
 
   final preferencias = PreferencesService(await SharedPreferences.getInstance());
-  final notificaciones = NotificationService();
-  try {
-    await notificaciones.initialize();
-    if (notificaciones.isInitialized) {
-      await notificaciones.cleanInvalidReminders();
-    }
-  } catch (e) {
-    debugPrint('Error al inicializar las notificaciones: $e');
-  }
+  final notificaciones = NotificationService(gateway: FlutterNotificationsGateway());
+  await notificaciones.initialize(); // nunca lanza: si algo falla queda "no disponible"
 
   runApp(
     MultiProvider(

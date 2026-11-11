@@ -1,385 +1,206 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
+
 import '../models/reminder_model.dart';
+import 'notifications_gateway.dart';
+import 'schedule_calculator.dart';
 
+/// Resultado de una operación sobre recordatorios, para mostrarlo a la persona.
+class ReminderResult {
+  const ReminderResult.success()
+      : ok = true,
+        message = null;
+
+  const ReminderResult.failure(String this.message) : ok = false;
+
+  final bool ok;
+  final String? message;
+}
+
+/// Guarda los recordatorios y los programa como avisos semanales.
 class NotificationService extends ChangeNotifier {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
-  NotificationService._internal();
+  NotificationService({required NotificationsGateway gateway, tz.TZDateTime Function()? now})
+      : _gateway = gateway,
+        _now = now ?? (() => tz.TZDateTime.now(tz.local));
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
-  List<RosarioReminder> _reminders = [];
-  bool _isInitialized = false;
-  
-  static const String _channelIdNotification = 'rosario_notifications';
-  static const String _channelNameNotification = 'Recordatorios del Rosario';
-  static const String _channelDescNotification = 'Notificaciones para recordar el Rosario';
-  
-  static const String _channelIdAlarm = 'rosario_alarms';
-  static const String _channelNameAlarm = 'Alarmas del Rosario';
-  static const String _channelDescAlarm = 'Alarmas sonoras para el Rosario';
+  static const String storageKey = 'rosario_reminders';
+  static const String _errorGuardar = 'No se pudo guardar el recordatorio. Intenta de nuevo.';
+  static const String _errorProgramar = 'El recordatorio se guardó, pero no se pudo programar el aviso.';
+  static const String _errorNoExiste = 'Ese recordatorio ya no existe.';
 
-  static const int _maxId = 2147483647;
-  static const int _minId = 1000000;
+  final NotificationsGateway _gateway;
+  final tz.TZDateTime Function() _now;
+
+  List<RosarioReminder> _reminders = const [];
+  NotificationPermissions _permissions = NotificationPermissions.none;
+  bool _isAvailable = false;
+  String? _initError;
 
   List<RosarioReminder> get reminders => List.unmodifiable(_reminders);
-  bool get isInitialized => _isInitialized;
+  NotificationPermissions get permissions => _permissions;
+  bool get isAvailable => _isAvailable;
+  String? get initError => _initError;
 
+  /// Prepara el plugin, carga lo guardado y reprograma. Nunca lanza: si algo falla, queda "no disponible".
   Future<void> initialize() async {
-    if (_isInitialized) return;
-
     try {
-      const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
-
-      const iosSettings = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-        defaultPresentAlert: true,
-        defaultPresentBadge: true,
-        defaultPresentSound: true,
-      );
-
-      const initSettings = InitializationSettings(
-        android: androidSettings, 
-        iOS: iosSettings,
-      );
-
-      await _notificationsPlugin.initialize(
-        settings: initSettings,
-        onDidReceiveNotificationResponse: _onNotificationTapped,
-      );
-
-      if (Platform.isAndroid) {
-        await _createNotificationChannels();
-      }
-
-      await _loadReminders();
-      _isInitialized = true;
-      debugPrint('NotificationService inicializado correctamente');
+      await _gateway.initialize();
+      _isAvailable = true;
     } catch (e) {
-      debugPrint('Error al inicializar NotificationService: $e');
-      _isInitialized = false;
+      _initError = 'Las notificaciones no están disponibles en este dispositivo.';
+      debugPrint('$_initError Detalle: $e');
     }
-  }
-
-  Future<void> _createNotificationChannels() async {
-    final androidPlugin = _notificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    if (androidPlugin == null) return;
-
-    const notificationChannel = AndroidNotificationChannel(
-      _channelIdNotification, 
-      _channelNameNotification,
-      description: _channelDescNotification, 
-      importance: Importance.high,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    const alarmChannel = AndroidNotificationChannel(
-      _channelIdAlarm, 
-      _channelNameAlarm,
-      description: _channelDescAlarm,
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-      enableLights: true,
-    );
-
-    await androidPlugin.createNotificationChannel(notificationChannel);
-    await androidPlugin.createNotificationChannel(alarmChannel);
-    debugPrint('Canales de notificación creados');
-  }
-
-  Future<bool> requestPermissions() async {
-    if (Platform.isAndroid) {
-      // Android 13+ requiere permiso explícito para notificaciones
-      if (await Permission.notification.isDenied) {
-        final notificationStatus = await Permission.notification.request();
-        if (!notificationStatus.isGranted) {
-          debugPrint('Permiso de notificación denegado');
-          return false;
-        }
-      }
-
-      // Android 12+ requiere permiso para alarmas exactas
-      if (await Permission.scheduleExactAlarm.isDenied) {
-        final alarmStatus = await Permission.scheduleExactAlarm.request();
-        if (!alarmStatus.isGranted) {
-          debugPrint('Permiso de alarma exacta denegado');
-          return false;
-        }
-      }
-      
-      return true;
+    await _load();
+    if (_isAvailable) {
+      _permissions = await _gateway.checkPermissions();
+      await _rescheduleAll();
     }
-    return true;
+    notifyListeners();
   }
 
-  Future<bool> hasPermissions() async {
-    if (Platform.isAndroid) {
-      final hasNotificationPermission = await Permission.notification.isGranted;
-      final hasExactAlarmPermission = await Permission.scheduleExactAlarm.isGranted;
-      return hasNotificationPermission && hasExactAlarmPermission;
+  Future<NotificationPermissions> requestPermissions() async {
+    if (!_isAvailable) return _permissions;
+    _permissions = await _gateway.requestPermissions();
+    await _rescheduleAll();
+    notifyListeners();
+    return _permissions;
+  }
+
+  Future<void> requestExactAlarms() async {
+    if (!_isAvailable) return;
+    await _gateway.requestExactAlarms();
+    await refreshPermissions();
+  }
+
+  /// Se llama al volver a la app (por ejemplo, desde los ajustes del sistema).
+  Future<void> refreshPermissions() async {
+    if (!_isAvailable) return;
+    final antes = _permissions;
+    _permissions = await _gateway.checkPermissions();
+    if (antes.exactAlarms != _permissions.exactAlarms || antes.notifications != _permissions.notifications) {
+      await _rescheduleAll();
     }
-    return true;
+    notifyListeners();
   }
 
-  Future<void> _scheduleReminderNotifications(RosarioReminder reminder) async {
-    await _cancelReminderNotifications(reminder);
-    for (int dayOfWeek in reminder.daysOfWeek) {
-      await _scheduleWeeklyNotification(reminder, dayOfWeek);
-    }
-    debugPrint('Notificaciones programadas para: ${reminder.title}');
+  Future<void> openSettings() => _gateway.openSettings();
+
+  Future<ReminderResult> addReminder(RosarioReminder draft) {
+    final creado = draft.copyWith(id: nextReminderId(_reminders.map((r) => r.id)));
+    return _apply([..._reminders, creado], () async {
+      if (creado.isActive) await _schedule(creado);
+    });
   }
 
-  Future<void> _scheduleWeeklyNotification(RosarioReminder reminder, int dayOfWeek) async {
+  Future<ReminderResult> updateReminder(RosarioReminder updated) async {
+    final indice = _reminders.indexWhere((r) => r.id == updated.id);
+    if (indice == -1) return const ReminderResult.failure(_errorNoExiste);
+    final anterior = _reminders[indice];
+    return _apply([..._reminders]..[indice] = updated, () async {
+      await _cancel(anterior);
+      if (updated.isActive) await _schedule(updated);
+    });
+  }
+
+  Future<ReminderResult> removeReminder(int id) async {
+    final indice = _reminders.indexWhere((r) => r.id == id);
+    if (indice == -1) return const ReminderResult.failure(_errorNoExiste);
+    final eliminado = _reminders[indice];
+    return _apply([..._reminders]..removeAt(indice), () => _cancel(eliminado));
+  }
+
+  Future<ReminderResult> toggleReminder(int id) async {
+    final indice = _reminders.indexWhere((r) => r.id == id);
+    if (indice == -1) return const ReminderResult.failure(_errorNoExiste);
+    final actual = _reminders[indice];
+    return updateReminder(actual.copyWith(isActive: !actual.isActive));
+  }
+
+  /// Guarda [siguiente]; si no se puede, deja todo como estaba. Después sincroniza los avisos.
+  Future<ReminderResult> _apply(List<RosarioReminder> siguiente, Future<void> Function() sincronizar) async {
+    final anterior = _reminders;
+    _reminders = siguiente;
     try {
-      final scheduledDate = _getNextDateForDayOfWeek(dayOfWeek, reminder.time);
-      final notificationId = _generateNotificationId(reminder.id, dayOfWeek);
-      
-      await _notificationsPlugin.zonedSchedule(
-        id: notificationId,
+      await _save();
+    } catch (e) {
+      _reminders = anterior;
+      debugPrint('Error al guardar recordatorios: $e');
+      notifyListeners();
+      return const ReminderResult.failure(_errorGuardar);
+    }
+    notifyListeners();
+    // Sin plugin no hay nada que programar; la pantalla ya avisa que no está disponible.
+    if (!_isAvailable) return const ReminderResult.success();
+    try {
+      await sincronizar();
+    } catch (e) {
+      debugPrint('Error al programar avisos: $e');
+      return const ReminderResult.failure(_errorProgramar);
+    }
+    return const ReminderResult.success();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final guardados = prefs.getStringList(storageKey) ?? const <String>[];
+    final leidos = <RosarioReminder>[];
+    for (final json in guardados) {
+      try {
+        leidos.add(RosarioReminder.fromMap(jsonDecode(json) as Map<String, dynamic>));
+      } catch (e) {
+        debugPrint('Recordatorio dañado descartado: $e');
+      }
+    }
+    final renumerados = renumberIfNeeded(leidos);
+    _reminders = renumerados ?? leidos;
+    if (renumerados != null || leidos.length != guardados.length) {
+      try {
+        await _save();
+      } catch (e) {
+        debugPrint('No se pudo guardar la migración de recordatorios: $e');
+      }
+    }
+  }
+
+  Future<void> _save() async {
+    final prefs = await SharedPreferences.getInstance();
+    final guardado = await prefs.setStringList(storageKey, [for (final r in _reminders) jsonEncode(r.toMap())]);
+    if (!guardado) throw StateError('No se guardaron los recordatorios');
+  }
+
+  Future<void> _schedule(RosarioReminder reminder) async {
+    final ahora = _now();
+    for (final dia in reminder.daysOfWeek) {
+      await _gateway.scheduleWeekly(
+        id: notificationIdFor(reminder.id, dia),
         title: reminder.title,
         body: reminder.description,
-        scheduledDate: scheduledDate,
-        notificationDetails: _getNotificationDetails(reminder.type),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+        date: nextWeeklyDate(now: ahora, weekday: dia, hour: reminder.time.hour, minute: reminder.time.minute),
+        isAlarm: reminder.type == ReminderType.alarm,
+        exact: _permissions.exactAlarms,
         payload: 'reminder_${reminder.id}',
       );
-      
-      debugPrint('Notificación programada: ID $notificationId para el día $dayOfWeek a las ${reminder.timeText}');
-    } catch (e) {
-      debugPrint('Error al programar notificación semanal: $e');
     }
   }
 
-  tz.TZDateTime _getNextDateForDayOfWeek(int dayOfWeek, TimeOfDay time) {
-    var now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
-      tz.local, 
-      now.year, 
-      now.month, 
-      now.day, 
-      time.hour, 
-      time.minute,
-    );
-    
-    while (scheduledDate.weekday != dayOfWeek) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+  /// Cancela los 7 días posibles: cubre los días que se quitaron al editar.
+  Future<void> _cancel(RosarioReminder reminder) async {
+    for (var dia = DateTime.monday; dia <= DateTime.sunday; dia++) {
+      await _gateway.cancel(notificationIdFor(reminder.id, dia));
     }
-    
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 7));
-    }
-    
-    return scheduledDate;
-  }
-  
-  NotificationDetails _getNotificationDetails(ReminderType type) {
-    final isAlarm = type == ReminderType.alarm;
-    
-    final androidDetails = AndroidNotificationDetails(
-      isAlarm ? _channelIdAlarm : _channelIdNotification,
-      isAlarm ? _channelNameAlarm : _channelNameNotification,
-      channelDescription: isAlarm ? _channelDescAlarm : _channelDescNotification,
-      importance: isAlarm ? Importance.max : Importance.high,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-      enableLights: true,
-      fullScreenIntent: isAlarm,
-      category: isAlarm ? AndroidNotificationCategory.alarm : AndroidNotificationCategory.reminder,
-      audioAttributesUsage: isAlarm ? AudioAttributesUsage.alarm : AudioAttributesUsage.notification,
-      icon: '@mipmap/launcher_icon',
-      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true, 
-      presentBadge: true, 
-      presentSound: true,
-      sound: 'default',
-    );
-
-    return NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
   }
 
-  Future<void> _cancelReminderNotifications(RosarioReminder reminder) async {
-    for (int dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
-      final notificationId = _generateNotificationId(reminder.id, dayOfWeek);
-      await _notificationsPlugin.cancel(id: notificationId);
-    }
-    debugPrint('Notificaciones canceladas para: ${reminder.title}');
-  }
-  
-  Future<void> _loadReminders() async {
+  Future<void> _rescheduleAll() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final remindersJson = prefs.getStringList('rosario_reminders') ?? [];
-      _reminders = remindersJson.map((json) {
-        final map = jsonDecode(json) as Map<String, dynamic>;
-        return RosarioReminder.fromMap(map);
-      }).toList();
-      
-      await _rescheduleActiveReminders();
-      notifyListeners();
-      debugPrint('Recordatorios cargados: ${_reminders.length}');
-    } catch (e) {
-      debugPrint('Error al cargar recordatorios: $e');
-      _reminders = [];
-    }
-  }
-
-  Future<void> _saveReminders() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final remindersJson = _reminders.map((r) => jsonEncode(r.toMap())).toList();
-      await prefs.setStringList('rosario_reminders', remindersJson);
-      debugPrint('Recordatorios guardados: ${_reminders.length}');
-    } catch (e) {
-      debugPrint('Error al guardar recordatorios: $e');
-    }
-  }
-
-  Future<bool> addReminder(RosarioReminder reminder) async {
-    try {
-      final newReminder = reminder.copyWith(id: generateUniqueId());
-      _reminders.add(newReminder);
-      await _saveReminders();
-      
-      if (newReminder.isActive) {
-        await _scheduleReminderNotifications(newReminder);
+      await _gateway.cancelAll();
+      for (final reminder in _reminders.where((r) => r.isActive)) {
+        await _schedule(reminder);
       }
-      
-      notifyListeners();
-      return true;
     } catch (e) {
-      debugPrint("Error al añadir recordatorio: $e");
-      return false;
-    }
-  }
-  
-  Future<bool> updateReminder(RosarioReminder updatedReminder) async {
-    final index = _reminders.indexWhere((r) => r.id == updatedReminder.id);
-    if (index == -1) return false;
-    
-    try {
-      await _cancelReminderNotifications(_reminders[index]);
-      _reminders[index] = updatedReminder;
-      await _saveReminders();
-      
-      if (updatedReminder.isActive) {
-        await _scheduleReminderNotifications(updatedReminder);
-      }
-      
-      notifyListeners();
-      return true;
-    } catch (e) {
-      debugPrint("Error al actualizar recordatorio: $e");
-      return false;
-    }
-  }
-  
-  Future<bool> removeReminder(int reminderId) async {
-    final index = _reminders.indexWhere((r) => r.id == reminderId);
-    if (index == -1) return false;
-
-    try {
-      await _cancelReminderNotifications(_reminders[index]);
-      _reminders.removeAt(index);
-      await _saveReminders();
-      notifyListeners();
-      return true;
-    } catch (e) {
-      debugPrint("Error al eliminar recordatorio: $e");
-      return false;
-    }
-  }
-  
-  Future<bool> toggleReminder(int reminderId) async {
-    final index = _reminders.indexWhere((r) => r.id == reminderId);
-    if (index == -1) return false;
-    
-    final updated = _reminders[index].copyWith(isActive: !_reminders[index].isActive);
-    return await updateReminder(updated);
-  }
-
-  Future<void> _rescheduleActiveReminders() async {
-    await _notificationsPlugin.cancelAll();
-    for (final reminder in _reminders.where((r) => r.isActive)) {
-      await _scheduleReminderNotifications(reminder);
-    }
-    debugPrint('${_reminders.where((r) => r.isActive).length} recordatorios activos reprogramados');
-  }
-
-  int generateUniqueId() {
-    final random = Random();
-    int id;
-    do {
-      id = _minId + random.nextInt(_maxId - _minId);
-    } while (_reminders.any((r) => r.id == id));
-    return id;
-  }
-
-  int _generateNotificationId(int reminderId, int dayOfWeek) {
-    // Asegurar que el ID sea único y válido
-    return (reminderId % 100000) * 10 + dayOfWeek;
-  }
-  
-  Future<bool> sendTestNotification() async {
-    try {
-      await _notificationsPlugin.show(
-        id: 999999,
-        title: '¡Prueba de Notificación del Rosario!',
-        body: 'Si ves y escuchas esto, las notificaciones funcionan correctamente.',
-        notificationDetails: _getNotificationDetails(ReminderType.alarm),
-        payload: 'test_notification',
-      );
-      return true;
-    } catch (e) {
-      debugPrint('Error al enviar notificación de prueba: $e');
-      return false;
-    }
-  }
-
-  void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('Notificación tocada: ${response.payload}');
-    // Aquí puedes agregar navegación si lo deseas
-  }
-
-  // Método para limpiar recordatorios con IDs inválidos
-  Future<void> cleanInvalidReminders() async {
-    final validReminders = <RosarioReminder>[];
-    bool needsSave = false;
-    
-    for (final reminder in _reminders) {
-      if (reminder.id > 0 && reminder.id <= _maxId) {
-        validReminders.add(reminder);
-      } else {
-        needsSave = true;
-        validReminders.add(reminder.copyWith(id: generateUniqueId()));
-        debugPrint('Recordatorio con ID inválido corregido: ${reminder.title}');
-      }
-    }
-    
-    if (needsSave) {
-      _reminders = validReminders;
-      await _saveReminders();
-      await _rescheduleActiveReminders();
-      notifyListeners();
-      debugPrint('Recordatorios con IDs inválidos limpiados');
+      debugPrint('Error al reprogramar recordatorios: $e');
     }
   }
 }

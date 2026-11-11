@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'support/app_harness.dart';
+import 'support/fake_notifications_gateway.dart';
 
 void main() {
   testWidgets('la app arranca en la pantalla de inicio', (tester) async {
@@ -13,7 +14,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: preferencias),
-          ChangeNotifierProvider(create: (_) => NotificationService()),
+          ChangeNotifierProvider(create: (_) => NotificationService(gateway: FakeNotificationsGateway())),
           ChangeNotifierProvider(create: (_) => RosarioSession(reloj: () => lunes)),
         ],
         child: const MyApp(),
