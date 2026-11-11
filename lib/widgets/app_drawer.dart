@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/rosario_session.dart';
@@ -79,13 +80,16 @@ class AppDrawer extends StatelessWidget {
                   leading: const Icon(Icons.info_outline),
                   title: const Text('Acerca de'),
                   onTap: () {
-                    Navigator.pop(context);
-                    mostrarAcercaDe(context);
+                    final navegador = Navigator.of(context);
+                    navegador.pop();
+                    // El contexto del menú se cierra; el del navegador sigue vivo.
+                    mostrarAcercaDe(navegador.context);
                   },
                 ),
               ],
             ),
           ),
+          const _Version(),
         ],
       ),
     );
@@ -99,11 +103,13 @@ void abrirDesdeMenu(BuildContext context, WidgetBuilder pantalla) {
   navegador.push(MaterialPageRoute<void>(builder: pantalla));
 }
 
-void mostrarAcercaDe(BuildContext context, {String? version}) {
+Future<void> mostrarAcercaDe(BuildContext context) async {
+  final info = await PackageInfo.fromPlatform();
+  if (!context.mounted) return;
   showAboutDialog(
     context: context,
     applicationName: 'Santo Rosario',
-    applicationVersion: version,
+    applicationVersion: '${info.version} (${info.buildNumber})',
     applicationIcon: Image.asset('assets/icons/icono-rosario.png', width: 48, height: 48),
     children: const [
       Text('Una aplicación para rezar el Santo Rosario de manera guiada.'),
@@ -111,4 +117,29 @@ void mostrarAcercaDe(BuildContext context, {String? version}) {
       Text('Desarrollada con amor y devoción.'),
     ],
   );
+}
+
+class _Version extends StatelessWidget {
+  const _Version();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, info) {
+        final version = info.data?.version;
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTokens.espacioM),
+            child: Text(
+              version == null ? '' : 'Versión $version',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
