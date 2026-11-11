@@ -1,46 +1,37 @@
 import 'package:flutter/material.dart';
 
+import '../theme/seccion_colores.dart';
+
+/// Diez cuentas: las rezadas se rellenan con el dorado del tema.
 class RosaryBeadsWidget extends StatelessWidget {
+  const RosaryBeadsWidget({super.key, required this.current, required this.total});
+
+  /// Cuenta actual, empezando en 0.
   final int current;
   final int total;
 
-  const RosaryBeadsWidget({
-    super.key,
-    required this.current,
-    required this.total,
-  });
-
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    final secciones = context.secciones;
+    final pendiente = Theme.of(context).colorScheme.outline;
+    return Semantics(
+      label: 'Ave María ${current + 1} de $total',
+      excludeSemantics: true,
+      child: Center(
         child: Wrap(
           alignment: WrapAlignment.center,
-          spacing: 4,
+          spacing: 6,
           runSpacing: 8,
-          children: List.generate(total, (index) {
-            final isCompleted = index <= current;
+          children: List.generate(total, (i) {
+            final rezada = i <= current;
             return Container(
-              key: ValueKey('cuenta-$index'),
-              width: 12,
-              height: 12,
+              key: ValueKey('cuenta-$i'),
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isCompleted ? const Color(0xFFFBBF24) : Colors.grey.shade200,
-                border: Border.all(
-                  color: isCompleted ? const Color(0xFFF59E0B) : Colors.grey.shade300,
-                  width: 2,
-                ),
-                boxShadow: isCompleted
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFFBBF24).withOpacity(0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
+                color: rezada ? secciones.cuenta : Colors.transparent,
+                border: Border.all(color: rezada ? secciones.bordeCuenta : pendiente, width: 2),
               ),
             );
           }),

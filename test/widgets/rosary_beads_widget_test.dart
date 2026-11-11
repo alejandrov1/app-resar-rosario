@@ -25,4 +25,11 @@ void main() {
     expect(decoracion(3).color, equals(decoracion(0).color));
     expect(decoracion(3).color, isNot(equals(decoracion(4).color)));
   });
+
+  testWidgets('se anuncia como "Ave María n de 10"', (tester) async {
+    final handle = tester.ensureSemantics();
+    await mostrar(tester, actual: 3);
+    expect(find.bySemanticsLabel('Ave María 4 de 10'), findsOneWidget);
+    handle.dispose();
+  });
 }
