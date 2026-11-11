@@ -1,3 +1,4 @@
+import 'package:app_resar_rosario/app.dart';
 import 'package:app_resar_rosario/logic/rosario_session.dart';
 import 'package:app_resar_rosario/services/notification_service.dart';
 import 'package:app_resar_rosario/services/preferences_service.dart';
@@ -18,6 +19,33 @@ Future<PreferencesService> preferenciasDePrueba([Map<String, Object> valores = c
   return PreferencesService(await SharedPreferences.getInstance());
 }
 
+/// Servicio de recordatorios con el doble del sistema. Usa las preferencias simuladas que ya estén puestas.
+Future<NotificationService> notificacionesDePrueba(
+  FakeNotificationsGateway gateway, {
+  tz.TZDateTime Function()? ahora,
+}) async {
+  final servicio = NotificationService(
+    gateway: gateway,
+    now: ahora ?? () => tz.TZDateTime(tz.UTC, 2026, 11, 9, 6),
+  );
+  await servicio.initialize();
+  return servicio;
+}
+
+/// Todo lo que necesita la app completa, con dobles.
+Future<({PreferencesService preferencias, NotificationService notificaciones, FakeNotificationsGateway gateway})>
+    dependenciasDePrueba({Map<String, Object> preferencias = const {}}) async {
+  final prefs = await preferenciasDePrueba(preferencias);
+  final gateway = FakeNotificationsGateway();
+  return (preferencias: prefs, notificaciones: await notificacionesDePrueba(gateway), gateway: gateway);
+}
+
+/// La app completa, lista para `pumpWidget`.
+Future<Widget> appDePrueba({Map<String, Object> preferencias = const {}}) async {
+  final d = await dependenciasDePrueba(preferencias: preferencias);
+  return SantoRosarioApp(preferencias: d.preferencias, notificaciones: d.notificaciones, reloj: () => lunes);
+}
+
 /// Pone [hijo] dentro de una MaterialApp con los proveedores que usan las pantallas.
 Widget envolver(
   Widget hijo, {
@@ -34,18 +62,4 @@ Widget envolver(
     ],
     child: MaterialApp(theme: tema ?? AppTheme.claro(), home: hijo),
   );
-}
-
-/// Servicio de recordatorios con el doble del sistema. Usa las preferencias simuladas que ya estén puestas
-/// (llamar antes a [preferenciasDePrueba] o a `SharedPreferences.setMockInitialValues`).
-Future<NotificationService> notificacionesDePrueba(
-  FakeNotificationsGateway gateway, {
-  tz.TZDateTime Function()? ahora,
-}) async {
-  final servicio = NotificationService(
-    gateway: gateway,
-    now: ahora ?? () => tz.TZDateTime(tz.UTC, 2026, 11, 9, 6),
-  );
-  await servicio.initialize();
-  return servicio;
 }

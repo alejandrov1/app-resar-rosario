@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../logic/rosario_session.dart';
 import '../screens/agendar_rosario_screen.dart';
+import '../screens/configuracion_screen.dart';
 import '../services/preferences_service.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
@@ -60,10 +61,7 @@ class AppDrawer extends StatelessWidget {
                   onTap: () {
                     final tipo = sesion.tipoMisterio;
                     Navigator.pop(context);
-                    showDialog<void>(
-                      context: context,
-                      builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia),
-                    );
+                    showDialog<void>(context: context, builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia));
                   },
                 ),
                 ListTile(
@@ -74,6 +72,20 @@ class AppDrawer extends StatelessWidget {
                     // Se lee antes de cerrar el menú: el contexto del drawer ya no sirve al construir la ruta.
                     final preferencias = context.read<PreferencesService>();
                     abrirDesdeMenu(context, (_) => AgendarRosarioScreen(preferences: preferencias));
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.tune),
+                  title: const Text('Configuración'),
+                  subtitle: const Text('Texto, contraste y tema'),
+                  onTap: () => abrirDesdeMenu(context, (_) => const ConfiguracionScreen()),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('Acerca de'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    mostrarAcercaDe(context);
                   },
                 ),
               ],
@@ -90,4 +102,18 @@ void abrirDesdeMenu(BuildContext context, WidgetBuilder pantalla) {
   final navegador = Navigator.of(context);
   navegador.pop();
   navegador.push(MaterialPageRoute<void>(builder: pantalla));
+}
+
+void mostrarAcercaDe(BuildContext context, {String? version}) {
+  showAboutDialog(
+    context: context,
+    applicationName: 'Santo Rosario',
+    applicationVersion: version,
+    applicationIcon: Image.asset('assets/icons/icono-rosario.png', width: 48, height: 48),
+    children: const [
+      Text('Una aplicación para rezar el Santo Rosario de manera guiada.'),
+      SizedBox(height: AppTokens.espacioM),
+      Text('Desarrollada con amor y devoción.'),
+    ],
+  );
 }

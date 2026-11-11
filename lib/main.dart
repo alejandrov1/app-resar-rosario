@@ -1,15 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'theme/app_theme.dart';
-import 'screens/principal_screen.dart';
+import 'app.dart';
 import 'services/notification_service.dart';
 import 'services/notifications_gateway.dart';
-import 'services/zona_horaria.dart';
-import 'logic/rosario_session.dart';
 import 'services/preferences_service.dart';
-import 'widgets/settings_drawer.dart';
+import 'services/zona_horaria.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,57 +15,5 @@ Future<void> main() async {
   final notificaciones = NotificationService(gateway: FlutterNotificationsGateway());
   await notificaciones.initialize(); // nunca lanza: si algo falla queda "no disponible"
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: preferencias),
-        ChangeNotifierProvider.value(value: notificaciones),
-        ChangeNotifierProvider(create: (_) => RosarioSession()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final preferencias = context.watch<PreferencesService>();
-    return MaterialApp(
-      title: 'Santo Rosario',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.claro(
-        altoContraste: preferencias.useHighContrast,
-        botonesGrandes: preferencias.useLargeButtons,
-      ),
-      darkTheme: AppTheme.oscuro(
-        altoContraste: preferencias.useHighContrast,
-        botonesGrandes: preferencias.useLargeButtons,
-      ),
-      themeMode: preferencias.themeMode,
-      home: MainScreen(preferences: preferencias),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(preferencias.textScaleFactor),
-        ),
-        child: child!,
-      ),
-    );
-  }
-}
-
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key, required this.preferences});
-
-  final PreferencesService preferences;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: SettingsDrawer(preferences: preferences),
-      body: const PrincipalScreen(),
-    );
-  }
+  runApp(SantoRosarioApp(preferencias: preferencias, notificaciones: notificaciones));
 }
