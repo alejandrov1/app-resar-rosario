@@ -43,4 +43,10 @@ void main() {
     expect(receivers, hasLength(2));
     expect(receivers.every((r) => r.contains('android:exported="false"')), isTrue);
   });
+
+  test('la firma de release se lee de key.properties, que no está en git', () {
+    expect(gradle, contains('rootProject.file("key.properties")'));
+    expect(gradle, contains('signingConfigs.getByName("release")'));
+    expect(File('.gitignore').readAsStringSync(), contains('/android/key.properties'));
+  });
 }
