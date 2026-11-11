@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../logic/rosario_session.dart';
 import '../screens/agendar_rosario_screen.dart';
 import '../screens/configuracion_screen.dart';
-import '../services/preferences_service.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
 import 'misterios_del_dia_modal.dart';
@@ -68,11 +67,7 @@ class AppDrawer extends StatelessWidget {
                   leading: const Icon(Icons.schedule),
                   title: const Text('Agendar Rosario'),
                   subtitle: const Text('Programar recordatorios'),
-                  onTap: () {
-                    // Se lee antes de cerrar el menú: el contexto del drawer ya no sirve al construir la ruta.
-                    final preferencias = context.read<PreferencesService>();
-                    abrirDesdeMenu(context, (_) => AgendarRosarioScreen(preferences: preferencias));
-                  },
+                  onTap: () => abrirDesdeMenu(context, (_) => const AgendarRosarioScreen()),
                 ),
                 ListTile(
                   leading: const Icon(Icons.tune),

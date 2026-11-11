@@ -1,345 +1,165 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../models/reminder_model.dart';
-import '../constants/app_constants.dart';
+import '../theme/app_tokens.dart';
 
+const _diasSemana = [
+  (1, 'L', 'Lunes'),
+  (2, 'M', 'Martes'),
+  (3, 'X', 'Miércoles'),
+  (4, 'J', 'Jueves'),
+  (5, 'V', 'Viernes'),
+  (6, 'S', 'Sábado'),
+  (7, 'D', 'Domingo'),
+];
+
+/// Formulario para crear o editar un recordatorio. Se muestra en una hoja inferior.
 class ReminderForm extends StatefulWidget {
-  final RosarioReminder? reminder;
-  final Function(RosarioReminder) onSave;
+  const ReminderForm({super.key, this.reminder, required this.onSave});
 
-  const ReminderForm({
-    super.key,
-    this.reminder,
-    required this.onSave,
-  });
+  final RosarioReminder? reminder;
+  final ValueChanged<RosarioReminder> onSave;
 
   @override
   State<ReminderForm> createState() => _ReminderFormState();
 }
 
 class _ReminderFormState extends State<ReminderForm> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TimeOfDay _time;
-  late Set<int> _selectedDays;
-  late ReminderType _type;
-
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final reminder = widget.reminder;
-    if (reminder != null) {
-      _titleController = TextEditingController(text: reminder.title);
-      _time = reminder.time;
-      _selectedDays = Set.from(reminder.daysOfWeek);
-      _type = reminder.type;
-    } else {
-      _titleController = TextEditingController(text: 'Rezar el Santo Rosario');
-      _time = TimeOfDay.now();
-      _selectedDays = {};
-      _type = ReminderType.notification;
-    }
-  }
+  final _formulario = GlobalKey<FormState>();
+  late final TextEditingController _titulo =
+      TextEditingController(text: widget.reminder?.title ?? 'Rezar el Santo Rosario');
+  late TimeOfDay _hora = widget.reminder?.time ?? const TimeOfDay(hour: 19, minute: 0);
+  late final Set<int> _dias = {...?widget.reminder?.daysOfWeek};
+  late ReminderType _tipo = widget.reminder?.type ?? ReminderType.notification;
+  late String _descripcion = widget.reminder?.description ?? 'Es hora de tu oración. El Señor está contigo.';
+  bool _faltanDias = false;
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _titulo.dispose();
     super.dispose();
   }
-  
-  void _saveForm() {
-    final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
-    
-    if (_selectedDays.isEmpty) {
+
+  Future<void> _elegirHora() async {
+    final hora = await showTimePicker(context: context, initialTime: _hora);
+    if (hora != null) setState(() => _hora = hora);
+  }
+
+  void _guardar() {
+    final valido = _formulario.currentState!.validate();
+    setState(() => _faltanDias = _dias.isEmpty);
+    if (!valido || _dias.isEmpty) {
       HapticFeedback.heavyImpact();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Por favor, selecciona al menos un día'),
-          backgroundColor: Colors.orange.shade700,
-        ),
-      );
       return;
     }
-    
-    setState(() {
-      _isSaving = true;
-    });
-
-    form.save();
-    
-    final reminderToSave = RosarioReminder(
+    widget.onSave(RosarioReminder(
       id: widget.reminder?.id ?? 0,
-      title: _titleController.text.trim(),
-      description: 'Es hora de tu oración diaria. El Señor está contigo.',
-      time: _time,
-      daysOfWeek: _selectedDays.toList()..sort(),
-      type: _type,
+      title: _titulo.text.trim(),
+      description: _descripcion,
+      time: _hora,
+      daysOfWeek: _dias.toList()..sort(),
       isActive: widget.reminder?.isActive ?? true,
+      type: _tipo,
       createdAt: widget.reminder?.createdAt ?? DateTime.now(),
-    );
-    
-    widget.onSave(reminderToSave);
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: AppConstants.spacingM,
-          right: AppConstants.spacingM,
-          top: AppConstants.spacingM
-        ),
-        child: Form(
-          key: _formKey,
+    final textos = Theme.of(context).textTheme;
+    final esquema = Theme.of(context).colorScheme;
+
+    return Padding(
+      // El espacio del teclado se aplica una sola vez, aquí (E10).
+      padding: EdgeInsets.only(
+        left: AppTokens.espacioL,
+        right: AppTokens.espacioL,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + AppTokens.espacioL,
+      ),
+      child: Form(
+        key: _formulario,
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.reminder == null ? 'Nuevo Recordatorio' : 'Editar Recordatorio',
-                    style: const TextStyle(
-                      fontSize: AppConstants.fontSizeL,
-                      fontWeight: FontWeight.bold,
-                      color: AppConstants.textPrimary,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                    color: AppConstants.textSecondary,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppConstants.spacingM),
+              Text(widget.reminder == null ? 'Nuevo recordatorio' : 'Editar recordatorio', style: textos.titleLarge),
+              const SizedBox(height: AppTokens.espacioL),
               TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Título del Recordatorio',
-                  prefixIcon: const Icon(Icons.edit, color: AppConstants.primaryBlue),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusS),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                ),
+                controller: _titulo,
                 maxLength: 50,
                 textCapitalization: TextCapitalization.sentences,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Por favor, ingresa un título';
-                  }
-                  return null;
-                },
+                decoration: const InputDecoration(
+                  labelText: 'Título',
+                  prefixIcon: Icon(Icons.edit_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Escribe un título' : null,
               ),
-              const SizedBox(height: AppConstants.spacingS),
-              _buildTimePicker(),
-              const SizedBox(height: AppConstants.spacingM),
-              _buildDaySelector(),
-              const SizedBox(height: AppConstants.spacingM),
-              _buildTypeSelector(),
-              const SizedBox(height: AppConstants.spacingL),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.access_time),
+                title: const Text('Hora'),
+                subtitle: Text(_hora.format(context), style: textos.titleMedium),
+                trailing: const Icon(Icons.edit_outlined),
+                onTap: _elegirHora,
+              ),
+              const SizedBox(height: AppTokens.espacioS),
+              Text('Repetir', style: textos.titleSmall),
+              const SizedBox(height: AppTokens.espacioS),
+              Wrap(
+                spacing: AppTokens.espacioS,
+                runSpacing: AppTokens.espacioS,
+                children: [
+                  for (final (dia, letra, nombre) in _diasSemana)
+                    FilterChip(
+                      label: Text(letra),
+                      tooltip: nombre,
+                      selected: _dias.contains(dia),
+                      onSelected: (marcado) => setState(() {
+                        marcado ? _dias.add(dia) : _dias.remove(dia);
+                        _faltanDias = false;
+                      }),
+                    ),
+                ],
+              ),
+              if (_faltanDias) ...[
+                const SizedBox(height: AppTokens.espacioS),
+                Text('Elige al menos un día', style: textos.bodySmall?.copyWith(color: esquema.error)),
+              ],
+              const SizedBox(height: AppTokens.espacioL),
+              Text('Tipo', style: textos.titleSmall),
+              const SizedBox(height: AppTokens.espacioS),
+              SegmentedButton<ReminderType>(
+                segments: [
+                  for (final tipo in ReminderType.values)
+                    ButtonSegment(value: tipo, label: Text(tipo.displayName), icon: Icon(tipo.icon)),
+                ],
+                selected: {_tipo},
+                onSelectionChanged: (seleccion) => setState(() => _tipo = seleccion.first),
+              ),
+              const SizedBox(height: AppTokens.espacioS),
+              Text(_tipo.description, style: textos.bodySmall),
+              const SizedBox(height: AppTokens.espacioXL),
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving ? null : () => Navigator.pop(context),
-                      child: const Text('Cancelar'),
-                    ),
-                  ),
-                  const SizedBox(width: AppConstants.spacingS),
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar'))),
+                  const SizedBox(width: AppTokens.espacioM),
                   Expanded(
                     flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: _isSaving ? null : _saveForm,
-                      icon: _isSaving
-                          ? const SizedBox.shrink()
-                          : const Icon(Icons.save),
-                      label: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2, 
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text('Guardar'),
+                    child: FilledButton.icon(
+                      onPressed: _guardar,
+                      icon: const Icon(Icons.save_outlined),
+                      label: const Text('Guardar'),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppConstants.spacingS),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTimePicker() {
-    return InkWell(
-      onTap: () async {
-        HapticFeedback.lightImpact();
-        final newTime = await showTimePicker(
-          context: context,
-          initialTime: _time,
-          builder: (context, child) {
-            return Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: AppConstants.primaryBlue,
-                  onPrimary: Colors.white,
-                  onSurface: AppConstants.textPrimary,
-                ),
-              ),
-              child: child!,
-            );
-          },
-        );
-        if (newTime != null) {
-          setState(() {
-            _time = newTime;
-          });
-        }
-      },
-      borderRadius: BorderRadius.circular(AppConstants.radiusS),
-      child: Container(
-        padding: const EdgeInsets.all(AppConstants.spacingS),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(AppConstants.radiusS),
-          color: Colors.grey.shade50,
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.access_time, color: AppConstants.primaryBlue),
-            const SizedBox(width: AppConstants.spacingS),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Hora del recordatorio',
-                    style: TextStyle(
-                      fontSize: AppConstants.fontSizeXS,
-                      color: AppConstants.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _time.format(context),
-                    style: const TextStyle(
-                      fontSize: AppConstants.fontSizeM,
-                      fontWeight: FontWeight.w600,
-                      color: AppConstants.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.edit_outlined, color: AppConstants.textSecondary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDaySelector() {
-    const days = [
-      {'short': 'L', 'value': 1},
-      {'short': 'M', 'value': 2},
-      {'short': 'X', 'value': 3},
-      {'short': 'J', 'value': 4},
-      {'short': 'V', 'value': 5},
-      {'short': 'S', 'value': 6},
-      {'short': 'D', 'value': 7},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Repetir los días:'),
-            if (_selectedDays.isEmpty)
-              Text(
-                'Selecciona al menos un día', 
-                style: TextStyle(color: Colors.red.shade600, fontSize: 12),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppConstants.spacingXS),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: days.map((day) {
-            final isSelected = _selectedDays.contains(day['value'] as int);
-            return InkWell(
-              onTap: () {
-                HapticFeedback.lightImpact();
-                setState(() {
-                  if (isSelected) {
-                    _selectedDays.remove(day['value'] as int);
-                  } else {
-                    _selectedDays.add(day['value'] as int);
-                  }
-                });
-              },
-              borderRadius: BorderRadius.circular(AppConstants.radiusCircle),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isSelected ? AppConstants.primaryBlue : Colors.grey.shade200,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    day['short'] as String,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppConstants.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTypeSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Tipo de recordatorio:'),
-        const SizedBox(height: AppConstants.spacingXS),
-        ...ReminderType.values.map((type) {
-          return RadioListTile<ReminderType>(
-            title: Text(type.displayName),
-            subtitle: Text(type.description),
-            value: type,
-            groupValue: _type,
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _type = value);
-              }
-            },
-            secondary: Icon(type.icon, color: AppConstants.primaryBlue),
-            contentPadding: EdgeInsets.zero,
-          );
-        }),
-      ],
     );
   }
 }
