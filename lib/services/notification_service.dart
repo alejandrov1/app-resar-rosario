@@ -185,7 +185,7 @@ class NotificationService extends ChangeNotifier {
   }
   
   NotificationDetails _getNotificationDetails(ReminderType type) {
-    final isAlarm = type == ReminderType.alarm || type == ReminderType.both;
+    final isAlarm = type == ReminderType.alarm;
     
     final androidDetails = AndroidNotificationDetails(
       isAlarm ? _channelIdAlarm : _channelIdNotification,
