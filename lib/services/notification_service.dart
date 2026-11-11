@@ -6,7 +6,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest_all.dart' as tz;
 import '../models/reminder_model.dart';
 
 class NotificationService extends ChangeNotifier {
@@ -36,9 +35,6 @@ class NotificationService extends ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      tz.initializeTimeZones();
-      tz.setLocalLocation(tz.local);
-      
       const androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
 
       const iosSettings = DarwinInitializationSettings(

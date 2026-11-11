@@ -5,12 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'theme/app_theme.dart';
 import 'screens/principal_screen.dart';
 import 'services/notification_service.dart';
+import 'services/zona_horaria.dart';
 import 'logic/rosario_session.dart';
 import 'services/preferences_service.dart';
 import 'widgets/settings_drawer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await configurarZonaHoraria();
 
   final preferencias = PreferencesService(await SharedPreferences.getInstance());
   final notificaciones = NotificationService();
