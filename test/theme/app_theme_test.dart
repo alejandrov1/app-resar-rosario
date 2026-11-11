@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_resar_rosario/models/prayer_models.dart';
 import 'package:app_resar_rosario/theme/app_theme.dart';
 import 'package:app_resar_rosario/theme/seccion_colores.dart';
@@ -35,5 +37,23 @@ void main() {
   test('incluye los colores de cada sección', () {
     final secciones = AppTheme.claro().extension<SeccionesTema>()!;
     expect(secciones.de(SeccionRosario.misterio), same(secciones.misterio));
+  });
+
+  testWidgets('las oraciones usan Lora', (tester) async {
+    late TextStyle estilo;
+    await tester.pumpWidget(MaterialApp(
+      theme: AppTheme.claro(),
+      home: Builder(builder: (context) {
+        estilo = AppTheme.oracion(context);
+        return const SizedBox.shrink();
+      }),
+    ));
+    expect(estilo.fontFamily, 'Lora');
+  });
+
+  test('la fuente y su licencia están en el proyecto', () {
+    for (final archivo in ['Lora-Variable.ttf', 'Lora-Italic-Variable.ttf', 'OFL.txt']) {
+      expect(File('assets/fonts/$archivo').existsSync(), isTrue, reason: archivo);
+    }
   });
 }

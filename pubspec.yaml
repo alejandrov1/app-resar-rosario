@@ -29,3 +29,10 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/fonts/OFL.txt
+  fonts:
+    - family: Lora
+      fonts:
+        - asset: assets/fonts/Lora-Variable.ttf
+        - asset: assets/fonts/Lora-Italic-Variable.ttf
+          style: italic

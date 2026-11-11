@@ -15,7 +15,7 @@ abstract final class AppTheme {
 
   /// Estilo del texto de las oraciones.
   static TextStyle oracion(BuildContext context) =>
-      Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 18, height: 1.6);
+      Theme.of(context).textTheme.bodyLarge!.copyWith(fontFamily: 'Lora', fontSize: 18, height: 1.6);
 
   static ThemeData _crear(Brightness brillo, {required bool altoContraste, required bool botonesGrandes}) {
     final esquema = ColorScheme.fromSeed(

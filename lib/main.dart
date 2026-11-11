@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +11,10 @@ import 'services/zona_horaria.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    final licencia = await rootBundle.loadString('assets/fonts/OFL.txt');
+    yield LicenseEntryWithLineBreaks(const ['Lora'], licencia);
+  });
   await configurarZonaHoraria();
 
   final preferencias = PreferencesService(await SharedPreferences.getInstance());

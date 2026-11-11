@@ -64,7 +64,13 @@ class LetaniasWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: AppTokens.espacioXS / 2),
               child: linea.respuesta == null
-                  ? Text(linea.invocacion, style: estilo.copyWith(fontWeight: FontWeight.w600))
+                  ? Text(
+                      linea.invocacion,
+                      style: estilo.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontVariations: const [FontVariation.weight(600)],
+                      ),
+                    )
                   : Text.rich(
                       TextSpan(
                         children: [
