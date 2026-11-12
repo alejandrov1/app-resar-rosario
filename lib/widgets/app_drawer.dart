@@ -60,8 +60,10 @@ class AppDrawer extends StatelessWidget {
                   subtitle: Text('${sesion.tipoMisterio.nombre} · $dia'),
                   onTap: () {
                     final tipo = sesion.tipoMisterio;
-                    Navigator.pop(context);
-                    showDialog<void>(context: context, builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia));
+                    final navegador = Navigator.of(context);
+                    navegador.pop();
+                    // El contexto del menú se cierra; el del navegador sigue vivo.
+                    showDialog<void>(context: navegador.context, builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia));
                   },
                 ),
                 ListTile(
@@ -119,13 +121,21 @@ Future<void> mostrarAcercaDe(BuildContext context) async {
   );
 }
 
-class _Version extends StatelessWidget {
+class _Version extends StatefulWidget {
   const _Version();
+
+  @override
+  State<_Version> createState() => _VersionState();
+}
+
+class _VersionState extends State<_Version> {
+  // Se consulta una sola vez: build puede correr muchas veces.
+  late final Future<PackageInfo> _info = PackageInfo.fromPlatform();
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<PackageInfo>(
-      future: PackageInfo.fromPlatform(),
+      future: _info,
       builder: (context, info) {
         final version = info.data?.version;
         return SafeArea(

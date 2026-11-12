@@ -14,6 +14,12 @@ void main() {
     expect(plist, matches(RegExp(r'<key>CFBundleDisplayName</key>\s*<string>Santo Rosario</string>')));
   });
 
+  test('nombre del paquete e idioma español declarado', () {
+    final plist = File('ios/Runner/Info.plist').readAsStringSync();
+    expect(plist, matches(RegExp(r'<key>CFBundleName</key>\s*<string>Santo Rosario</string>')));
+    expect(plist, matches(RegExp(r'<key>CFBundleLocalizations</key>\s*<array>\s*<string>es</string>\s*</array>')));
+  });
+
   test('muestra notificaciones con la app abierta', () {
     final delegado = File('ios/Runner/AppDelegate.swift').readAsStringSync();
     expect(delegado, contains('UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate'));

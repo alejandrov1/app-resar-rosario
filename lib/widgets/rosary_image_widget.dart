@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_tokens.dart';
+
 /// Imagen del rosario de la pantalla de inicio, con aparición suave.
 class RosaryImageWidget extends StatelessWidget {
   const RosaryImageWidget({
@@ -23,10 +25,10 @@ class RosaryImageWidget extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTokens.fondoFoto,
         borderRadius: borderRadius,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.2), spreadRadius: 2, blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppTokens.sombraFoto, spreadRadius: 2, blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: ClipRRect(
