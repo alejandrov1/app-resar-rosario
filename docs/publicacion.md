@@ -4,8 +4,29 @@
 
 - [ ] Cuenta de Google Play Console (pago único).
 - [ ] Cuenta del Apple Developer Program (pago anual).
-- [ ] Clave de subida de Android creada y respaldada (Task 27 del plan). Sin ella no se puede actualizar la app.
+- [ ] Clave de subida de Android creada y respaldada (ver "Firma de Android" más abajo). Sin ella no se puede actualizar la app.
 - [ ] Política de privacidad publicada en una URL: activar GitHub Pages del repositorio y usar la página de `docs/privacidad.md`.
+
+## Firma de Android
+
+1. Crear la clave de subida con un `keytool` de JDK 17 o superior (viene con cualquier JDK, por ejemplo Temurin 21).
+   En PowerShell, en una sola línea:
+
+   ```powershell
+   keytool -genkeypair -v -keystore C:\ruta\a\upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+2. Crear `android/key.properties` (está en `.gitignore`) con estas claves, que son las que lee `android/app/build.gradle.kts`:
+
+   ```properties
+   storePassword=…
+   keyPassword=…
+   keyAlias=upload
+   storeFile=C:\\ruta\\a\\upload-keystore.jks
+   ```
+
+3. Respaldar el archivo `.jks` y sus contraseñas en un lugar seguro, fuera del repositorio. **Nunca** se suben al repositorio.
+   Sin la clave no se puede actualizar la app.
 
 ## Google Play
 
@@ -20,10 +41,15 @@
    - Política de privacidad: la URL publicada.
    - Seguridad de los datos: "La app no recopila ni comparte datos".
    - Clasificación de contenido: cuestionario (sin contenido sensible).
-   - Público objetivo: todas las edades.
+   - Público objetivo: todas las edades. Si se eligen edades menores de 13 años, la app entra a la política de Familias de Google Play,
+     con requisitos adicionales; si se elige 13 años o más, se evitan.
    - Declaración de **intent de pantalla completa** (`USE_FULL_SCREEN_INTENT`): la usa la opción "Alarma" para que el recordatorio aparezca con el teléfono bloqueado.
+   - En Android 14 o superior Play exige esa declaración. Si la rechazan, quitar el permiso `USE_FULL_SCREEN_INTENT` del
+     `AndroidManifest.xml` y la opción `fullScreenIntent` en `lib/services/notifications_gateway.dart`; las alarmas se
+     mostrarán como notificaciones emergentes (heads-up).
 6. Las cuentas personales nuevas deben hacer una **prueba cerrada** antes de producción (Play exige un número mínimo de testers durante un periodo; Play Console indica los requisitos vigentes de la cuenta).
 7. Prueba interna → prueba cerrada → producción.
+8. Para los testers: desinstalar antes la app anterior (`com.example.app_resar_rosario`). Es otra app distinta y conserva sus propios recordatorios.
 
 ## App Store
 

@@ -69,6 +69,8 @@
    - `android/app/src/main/res/raw/keep.xml`, para que R8 no borre el ícono ni el sonido.
 7. **Botón de las oraciones finales en `#15803D`** (un tono más oscuro que el `#16A34A` actual). Con el tono actual, el texto blanco no llega al contraste AA (3.3:1).
 8. **"Ave María n de 10" se muestra en la barra de progreso** (Task 23) en lugar de repetirse debajo de las cuentas.
+9. **Se conserva el `<queries>` con `PROCESS_TEXT` de la plantilla de Flutter**, aunque el §4.5 del spec dice quitar `<queries>`: el motor de Flutter lo usa para la selección de texto.
+10. **Al reprogramar solo se cancelan las notificaciones pendientes** (`cancelAllPendingNotifications`), no `cancelAll`, para que una alarma que ya está sonando no se descarte ni se silencie al abrir la app. Esto corrige el texto de la Task 14.
 
 ## Momentos en que se necesita al usuario
 
