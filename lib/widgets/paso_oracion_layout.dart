@@ -56,26 +56,27 @@ class PasoOracionLayout extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (progreso != null) ...[progreso!, const SizedBox(height: AppTokens.espacioM)],
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(titulo, style: textos.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                            ),
-                            IconButton(
-                              onPressed: onInicio,
-                              icon: const Icon(Icons.home_outlined),
-                              tooltip: 'Volver al inicio',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppTokens.espacioM),
-                        // Encabezado y oración se desplazan juntos: con texto grande nada se desborda.
+                        // Progreso, título, encabezado y oración se desplazan juntos: con texto muy grande
+                        // o en horizontal nada se desborda y los botones siguen a la vista.
                         Expanded(
                           child: SingleChildScrollView(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                if (progreso != null) ...[progreso!, const SizedBox(height: AppTokens.espacioM)],
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(titulo, style: textos.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                                    ),
+                                    IconButton(
+                                      onPressed: onInicio,
+                                      icon: const Icon(Icons.home_outlined),
+                                      tooltip: 'Volver al inicio',
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppTokens.espacioM),
                                 DecoratedBox(
                                   decoration: BoxDecoration(
                                     color: colores.suave,

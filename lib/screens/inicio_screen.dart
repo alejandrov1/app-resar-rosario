@@ -146,7 +146,7 @@ class _MisterioDelDia extends StatelessWidget {
               children: [
                 Icon(Icons.calendar_today_rounded, size: 20, color: colores.acento),
                 const SizedBox(width: AppTokens.espacioS),
-                Text(dia, style: textos.titleMedium?.copyWith(color: colores.acento)),
+                Flexible(child: Text(dia, textAlign: TextAlign.center, style: textos.titleMedium?.copyWith(color: colores.acento))),
               ],
             ),
             const SizedBox(height: AppTokens.espacioM),
