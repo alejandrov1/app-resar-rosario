@@ -30,7 +30,8 @@ abstract interface class NotificationsGateway {
     String? payload,
   });
   Future<void> cancel(int id);
-  Future<void> cancelAll();
+  /// Cancela solo lo programado: los avisos que ya se muestran (una alarma sonando) se quedan.
+  Future<void> cancelAllPending();
 }
 
 /// Implementación real con flutter_local_notifications.
@@ -147,7 +148,7 @@ class FlutterNotificationsGateway implements NotificationsGateway {
   Future<void> cancel(int id) => _plugin.cancel(id: id);
 
   @override
-  Future<void> cancelAll() => _plugin.cancelAll();
+  Future<void> cancelAllPending() => _plugin.cancelAllPendingNotifications();
 
   NotificationDetails _detalles({required bool isAlarm}) {
     final android = isAlarm

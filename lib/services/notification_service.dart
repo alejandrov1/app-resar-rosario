@@ -194,7 +194,7 @@ class NotificationService extends ChangeNotifier {
 
   Future<void> _rescheduleAll() async {
     try {
-      await _gateway.cancelAll();
+      await _gateway.cancelAllPending();
       for (final reminder in _reminders.where((r) => r.isActive)) {
         await _schedule(reminder);
       }

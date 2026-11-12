@@ -138,7 +138,7 @@ void main() {
 
     expect(servicio.reminders.map((r) => r.id), [1, 2]);
     expect(servicio.reminders.first.type, ReminderType.alarm);
-    expect(gateway.cancelAllCalls, 1);
+    expect(gateway.cancelAllPendingCalls, 1);
     expect(gateway.scheduled.keys, unorderedEquals([11, 21]));
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getStringList(NotificationService.storageKey), hasLength(2));

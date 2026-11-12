@@ -20,7 +20,7 @@ class FakeNotificationsGateway implements NotificationsGateway {
 
   final Map<int, AvisoProgramado> scheduled = {};
   final List<int> cancelled = [];
-  int cancelAllCalls = 0;
+  int cancelAllPendingCalls = 0;
   int openSettingsCalls = 0;
   int requestExactAlarmsCalls = 0;
 
@@ -66,8 +66,8 @@ class FakeNotificationsGateway implements NotificationsGateway {
   }
 
   @override
-  Future<void> cancelAll() async {
-    cancelAllCalls++;
+  Future<void> cancelAllPending() async {
+    cancelAllPendingCalls++;
     scheduled.clear();
   }
 }
