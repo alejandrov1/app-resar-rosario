@@ -22,9 +22,8 @@ class ReminderResult {
 
 /// Guarda los recordatorios y los programa como avisos semanales.
 class NotificationService extends ChangeNotifier {
-  NotificationService({required NotificationsGateway gateway, tz.TZDateTime Function()? now})
-      : _gateway = gateway,
-        _now = now ?? (() => tz.TZDateTime.now(tz.local));
+  NotificationService({required this._gateway, tz.TZDateTime Function()? now})
+      : _now = now ?? (() => tz.TZDateTime.now(tz.local));
 
   static const String storageKey = 'rosario_reminders';
   static const String _errorGuardar = 'No se pudo guardar el recordatorio. Intenta de nuevo.';

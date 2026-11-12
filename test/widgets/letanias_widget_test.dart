@@ -32,6 +32,15 @@ void main() {
     expect(analizarLetanias(texto).expand((g) => g), hasLength(lineas));
   });
 
+  test('LineaLetania compara por valor y se describe', () {
+    const a = LineaLetania('Santa María,', 'Ruega por nosotros.');
+    expect(a, const LineaLetania('Santa María,', 'Ruega por nosotros.'));
+    expect(a.hashCode, const LineaLetania('Santa María,', 'Ruega por nosotros.').hashCode);
+    expect(a, isNot(const LineaLetania('Santa María,')));
+    expect(a, isNot(const LineaLetania('Otra,', 'Ruega por nosotros.')));
+    expect(a.toString(), 'LineaLetania(Santa María,, Ruega por nosotros.)');
+  });
+
   testWidgets('muestra las respuestas', (tester) async {
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.claro(),
