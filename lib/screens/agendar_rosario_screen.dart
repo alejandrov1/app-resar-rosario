@@ -89,7 +89,12 @@ class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with Widget
         label: const Text('Nuevo'),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppTokens.espacioM, AppTokens.espacioS, AppTokens.espacioM, 96),
+        padding: EdgeInsets.fromLTRB(
+          AppTokens.espacioM,
+          AppTokens.espacioS,
+          AppTokens.espacioM,
+          MediaQuery.textScalerOf(context).scale(56) + AppTokens.espacioXL + AppTokens.espacioM,
+        ),
         children: [
           _AvisoPermisos(servicio: servicio),
           if (recordatorios.isEmpty)
@@ -233,41 +238,52 @@ class _TarjetaRecordatorio extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppTokens.espacioS),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.espacioM),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Semantics(
+        onTapHint: 'Editar ${recordatorio.title}',
+        child: InkWell(
+          onTap: onEditar,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTokens.espacioM),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(recordatorio.type.icon, color: esquema.primary),
-                const SizedBox(width: AppTokens.espacioS),
-                Expanded(child: Text(recordatorio.title, style: textos.titleMedium)),
-                Semantics(
-                  label: activo ? 'Desactivar ${recordatorio.title}' : 'Activar ${recordatorio.title}',
-                  child: Switch(value: activo, onChanged: (_) => onCambiar()),
+                Row(
+                  children: [
+                    Icon(recordatorio.type.icon, color: esquema.primary),
+                    const SizedBox(width: AppTokens.espacioS),
+                    Expanded(child: Text(recordatorio.title, style: textos.titleMedium)),
+                    Semantics(
+                      label: activo ? 'Desactivar ${recordatorio.title}' : 'Activar ${recordatorio.title}',
+                      child: Switch(value: activo, onChanged: (_) => onCambiar()),
+                    ),
+                  ],
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    recordatorio.time.format(context),
+                    maxLines: 1,
+                    style: textos.displaySmall?.copyWith(color: activo ? esquema.onSurface : esquema.onSurfaceVariant),
+                  ),
+                ),
+                Text(recordatorio.daysText, style: textos.bodyMedium),
+                const SizedBox(height: AppTokens.espacioS),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const Text('Editar')),
+                    TextButton.icon(
+                      onPressed: onEliminar,
+                      icon: const Icon(Icons.delete_outline),
+                      label: const Text('Eliminar'),
+                      style: TextButton.styleFrom(foregroundColor: esquema.error),
+                    ),
+                  ],
                 ),
               ],
             ),
-            Text(
-              recordatorio.time.format(context),
-              style: textos.displaySmall?.copyWith(color: activo ? esquema.onSurface : esquema.onSurfaceVariant),
-            ),
-            Text(recordatorio.daysText, style: textos.bodyMedium),
-            const SizedBox(height: AppTokens.espacioS),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const Text('Editar')),
-                TextButton.icon(
-                  onPressed: onEliminar,
-                  icon: const Icon(Icons.delete_outline),
-                  label: const Text('Eliminar'),
-                  style: TextButton.styleFrom(foregroundColor: esquema.error),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

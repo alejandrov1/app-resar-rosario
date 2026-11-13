@@ -1,5 +1,7 @@
 import 'package:app_resar_rosario/screens/agendar_rosario_screen.dart';
 import 'package:app_resar_rosario/services/notifications_gateway.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/app_harness.dart';
@@ -41,6 +43,27 @@ void main() {
     await crearRecordatorioDelLunes(tester);
     expect(find.text('Rezar el Santo Rosario'), findsOneWidget);
     expect(gateway.scheduled.keys, [11]);
+  });
+
+  testWidgets('tocar la tarjeta abre la edición', (tester) async {
+    await mostrar(tester);
+    await crearRecordatorioDelLunes(tester);
+    await tester.tap(find.text('Rezar el Santo Rosario'));
+    await tester.pumpAndSettle();
+    expect(find.text('Editar recordatorio'), findsOneWidget);
+  });
+
+  testWidgets('la tarjeta anuncia su acción de editar al lector de pantalla', (tester) async {
+    final semantica = tester.ensureSemantics();
+    await mostrar(tester);
+    await crearRecordatorioDelLunes(tester);
+    final datos = tester.getSemantics(find.byType(InkWell).first).getSemanticsData();
+    final pistas = [
+      for (final id in datos.customSemanticsActionIds ?? <int>[]) CustomSemanticsAction.getAction(id)?.hint,
+    ];
+    expect(datos.hasAction(SemanticsAction.tap), isTrue);
+    expect(pistas, contains('Editar Rezar el Santo Rosario'));
+    semantica.dispose();
   });
 
   testWidgets('si no se puede programar, lo dice', (tester) async {

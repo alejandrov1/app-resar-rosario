@@ -7,6 +7,7 @@ import '../models/prayer_models.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/misterios_del_dia_modal.dart';
 import '../widgets/rosary_image_widget.dart';
 
 class InicioScreen extends StatefulWidget {
@@ -36,7 +37,11 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
     final secciones = context.secciones;
     final colores = secciones.iniciales;
     final textos = Theme.of(context).textTheme;
-    final altoImagen = MediaQuery.sizeOf(context).height * 0.32;
+    // Con letra grande o en horizontal la imagen se achica para dejar más contenido a la vista.
+    final tamano = MediaQuery.sizeOf(context);
+    final escala = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    final horizontal = tamano.width > tamano.height;
+    final altoImagen = (tamano.height * (horizontal ? 0.4 : 0.26) / escala).clamp(96.0, 320.0);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -59,63 +64,73 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: AppTokens.anchoMaximo),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppTokens.espacioL),
-                child: FadeTransition(
-                  opacity: _aparecer,
-                  child: Column(
-                    children: [
-                      Text(
-                        'Santo Rosario',
-                        textAlign: TextAlign.center,
-                        style: textos.displaySmall?.copyWith(
-                          color: secciones.tituloInicio,
-                          fontWeight: FontWeight.w300,
-                          letterSpacing: 2,
+              // El botón queda fijo abajo: con letra grande nunca se esconde tras el desplazamiento.
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(AppTokens.espacioL, AppTokens.espacioL, AppTokens.espacioL, 0),
+                      child: FadeTransition(
+                        opacity: _aparecer,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Santo Rosario',
+                              textAlign: TextAlign.center,
+                              style: textos.displaySmall?.copyWith(
+                                color: secciones.tituloInicio,
+                                fontWeight: FontWeight.w300,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.espacioL),
+                            SlideTransition(
+                              position: _subir,
+                              child: RosaryImageWidget(
+                                width: double.infinity,
+                                height: altoImagen,
+                                imagePath: 'assets/images/imagen-rosario.png',
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.espacioXL),
+                            _MisterioDelDia(dia: nombreDelDia(sesion.hoy), tipo: sesion.tipoMisterio, colores: colores),
+                            const SizedBox(height: AppTokens.espacioXL),
+                            Text(
+                              '"El Rosario es la oración más hermosa que podemos ofrecer a la Virgen María"',
+                              textAlign: TextAlign.center,
+                              style: textos.bodyMedium?.copyWith(fontStyle: FontStyle.italic, color: secciones.tituloInicio),
+                            ),
+                            const SizedBox(height: AppTokens.espacioL),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: AppTokens.espacioL),
-                      SlideTransition(
-                        position: _subir,
-                        child: RosaryImageWidget(
-                          width: double.infinity,
-                          height: altoImagen,
-                          imagePath: 'assets/images/imagen-rosario.png',
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.espacioXL),
-                      _MisterioDelDia(dia: nombreDelDia(sesion.hoy), tipo: sesion.tipoMisterio, colores: colores),
-                      const SizedBox(height: AppTokens.espacioXL),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            sesion.comenzar();
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colores.boton,
-                            foregroundColor: colores.sobreBoton,
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.favorite_rounded),
-                              SizedBox(width: AppTokens.espacioS),
-                              Flexible(child: Text('Comenzar a Rezar')),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.espacioXL),
-                      Text(
-                        '"El Rosario es la oración más hermosa que podemos ofrecer a la Virgen María"',
-                        textAlign: TextAlign.center,
-                        style: textos.bodyMedium?.copyWith(fontStyle: FontStyle.italic, color: secciones.tituloInicio),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(AppTokens.espacioL),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          sesion.comenzar();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colores.boton,
+                          foregroundColor: colores.sobreBoton,
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.favorite_rounded),
+                            SizedBox(width: AppTokens.espacioS),
+                            Flexible(child: Text('Comenzar a Rezar')),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -135,33 +150,59 @@ class _MisterioDelDia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
+    void abrir() => showDialog<void>(context: context, builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia));
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.espacioL),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+      child: Semantics(
+        button: true,
+        label: '$dia: Misterios ${tipo.nombre}. Ver los 5 misterios',
+        onTap: abrir,
+        excludeSemantics: true,
+        child: InkWell(
+          onTap: abrir,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTokens.espacioL),
+            child: Column(
               children: [
-                Icon(Icons.calendar_today_rounded, size: 20, color: colores.acento),
-                const SizedBox(width: AppTokens.espacioS),
-                Flexible(child: Text(dia, textAlign: TextAlign.center, style: textos.titleMedium?.copyWith(color: colores.acento))),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today_rounded, size: 20, color: colores.acento),
+                    const SizedBox(width: AppTokens.espacioS),
+                    Flexible(
+                      child: Text(dia, textAlign: TextAlign.center, style: textos.titleMedium?.copyWith(color: colores.acento)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.espacioM),
+                DecoratedBox(
+                  decoration: BoxDecoration(color: colores.boton, borderRadius: BorderRadius.circular(999)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTokens.espacioL, vertical: AppTokens.espacioS),
+                    child: Text(
+                      'Misterios ${tipo.nombre}',
+                      textAlign: TextAlign.center,
+                      style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTokens.espacioM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Ver los 5 misterios',
+                        textAlign: TextAlign.center,
+                        style: textos.labelLarge?.copyWith(color: colores.acento),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: colores.acento),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: AppTokens.espacioM),
-            DecoratedBox(
-              decoration: BoxDecoration(color: colores.boton, borderRadius: BorderRadius.circular(999)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.espacioL, vertical: AppTokens.espacioS),
-                child: Text(
-                  'Misterios ${tipo.nombre}',
-                  textAlign: TextAlign.center,
-                  style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

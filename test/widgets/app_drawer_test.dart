@@ -1,5 +1,3 @@
-import 'package:app_resar_rosario/data/oraciones.dart';
-import 'package:app_resar_rosario/models/prayer_models.dart';
 import 'package:app_resar_rosario/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,24 +29,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('el menú muestra el misterio de hoy y todas las opciones', (tester) async {
+  testWidgets('el menú muestra las opciones, sin repetir el misterio del día', (tester) async {
     await abrirMenu(tester);
-    expect(find.text('Gozosos · Lunes'), findsOneWidget);
-    for (final opcion in ['Misterios del día', 'Agendar Rosario', 'Configuración', 'Acerca de']) {
+    expect(find.text('Misterios del día'), findsNothing);
+    for (final opcion in ['Agendar Rosario', 'Configuración', 'Acerca de']) {
       expect(find.text(opcion), findsOneWidget);
     }
-  });
-
-  testWidgets('abre el diálogo con los 5 misterios y se cierra', (tester) async {
-    await abrirMenu(tester);
-    await tester.tap(find.text('Misterios del día'));
-    await tester.pumpAndSettle();
-    for (final misterio in misteriosPorTipo[TipoMisterio.gozosos]!) {
-      expect(find.text(misterio), findsOneWidget);
-    }
-    await tester.tap(find.text('Entendido'));
-    await tester.pumpAndSettle();
-    expect(find.text('Misterios Gozosos'), findsNothing);
   });
 
   testWidgets('el menú muestra la versión instalada', (tester) async {
