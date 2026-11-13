@@ -26,10 +26,10 @@ void main() {
     expect(decoracion(3).color, isNot(equals(decoracion(4).color)));
   });
 
-  testWidgets('se anuncia como "Ave María n de 10"', (tester) async {
+  testWidgets('las cuentas no se anuncian: el número ya está en el título de la oración', (tester) async {
     final handle = tester.ensureSemantics();
-    await mostrar(tester, actual: 3);
-    expect(find.bySemanticsLabel('Ave María 4 de 10'), findsOneWidget);
+    await mostrar(tester, actual: 3); // ayudante que ya existe en el archivo
+    expect(find.bySemanticsLabel(RegExp('Ave María')), findsNothing);
     handle.dispose();
   });
 }

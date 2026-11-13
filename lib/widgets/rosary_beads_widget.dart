@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/seccion_colores.dart';
 
-/// Diez cuentas: las rezadas se rellenan con el dorado del tema.
+/// Diez cuentas: las rezadas se rellenan con el dorado del tema. Son decorativas para el lector
+/// de pantalla: el número ya se anuncia en el título de la oración.
 class RosaryBeadsWidget extends StatelessWidget {
   const RosaryBeadsWidget({super.key, required this.current, required this.total});
 
@@ -14,9 +15,7 @@ class RosaryBeadsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final secciones = context.secciones;
     final pendiente = Theme.of(context).colorScheme.outline;
-    return Semantics(
-      label: 'Ave María ${current + 1} de $total',
-      excludeSemantics: true,
+    return ExcludeSemantics(
       child: Center(
         child: Wrap(
           alignment: WrapAlignment.center,

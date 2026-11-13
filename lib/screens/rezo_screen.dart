@@ -7,9 +7,9 @@ import '../models/prayer_models.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
-import '../widgets/paso_oracion_layout.dart';
+import '../widgets/barra_rezo.dart';
 import '../widgets/letanias_widget.dart';
-import '../widgets/progreso_rosario.dart';
+import '../widgets/paso_oracion_layout.dart';
 import '../widgets/rosary_beads_widget.dart';
 
 /// Pantalla única para todo el recorrido del rosario.
@@ -32,31 +32,36 @@ class RezoScreen extends StatelessWidget {
       },
       child: PasoOracionLayout(
         colores: colores,
-        titulo: tituloDelPaso(paso, sesion.tipoMisterio),
-        encabezado: _Encabezado(paso: paso, sesion: sesion, colores: colores),
-        progreso: ProgresoRosario(paso: paso, progreso: sesion.progreso, colores: colores),
-        contenido: _Contenido(paso: paso, sesion: sesion, colores: colores),
+        barra: BarraRezo(
+          paso: paso,
+          tipo: sesion.tipoMisterio,
+          progreso: sesion.progreso,
+          colores: colores,
+          onSalir: sesion.reiniciar,
+        ),
+        cuerpo: _Cuerpo(paso: paso, sesion: sesion, colores: colores),
+        claveCuerpo: ValueKey(sesion.indice),
         onAnterior: sesion.indice > 0 ? sesion.anterior : null,
         onSiguiente: () {
           HapticFeedback.selectionClick();
           sesion.siguiente();
         },
-        onInicio: sesion.reiniciar,
         textoSiguiente: sesion.esUltimo ? 'Terminar Rosario' : 'Continuar',
       ),
     );
   }
 }
 
-/// Título de la tarjeta en cada paso.
-String tituloDelPaso(PasoRosario paso, TipoMisterio tipo) => switch (paso.seccion) {
-      SeccionRosario.iniciales => 'Oraciones Iniciales',
-      SeccionRosario.misterio => 'Misterios ${tipo.nombre} · ${paso.misterio! + 1}/$misteriosPorRosario',
-      SeccionRosario.finales => 'Oraciones Finales',
-    };
+/// Título del anuncio de un misterio: "2.º Misterio Luminoso".
+String tituloAnuncio(PasoRosario paso, TipoMisterio tipo) => '${paso.misterio! + 1}.º Misterio ${tipo.singular}';
 
-class _Encabezado extends StatelessWidget {
-  const _Encabezado({required this.paso, required this.sesion, required this.colores});
+/// Título de la oración del paso; durante la decena lleva el número: "Ave María · 3 de 10".
+String tituloOracion(PasoRosario paso) => paso.repeticion == null
+    ? paso.oracion.title
+    : '${paso.oracion.title} · ${paso.repeticion! + 1} de ${paso.oracion.count}';
+
+class _Cuerpo extends StatelessWidget {
+  const _Cuerpo({required this.paso, required this.sesion, required this.colores});
 
   final PasoRosario paso;
   final RosarioSession sesion;
@@ -65,73 +70,78 @@ class _Encabezado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textos = Theme.of(context).textTheme;
-    final principal = textos.titleMedium?.copyWith(color: colores.acento, fontWeight: FontWeight.w600);
-    final secundario = textos.bodyMedium?.copyWith(color: colores.acento);
+    final titulo = textos.titleLarge?.copyWith(fontWeight: FontWeight.w600);
 
-    final (linea1, linea2) = paso.seccion == SeccionRosario.misterio
-        ? ('${paso.misterio! + 1}° Misterio ${sesion.tipoMisterio.singular}', sesion.tituloMisterioActual)
-        : (paso.oracion.title, 'Paso ${paso.indiceEnSeccion + 1} de ${paso.totalEnSeccion}');
+    if (paso.esAnuncioDeMisterio) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: AppTokens.espacioS),
+          Icon(Icons.auto_awesome, size: 32, color: colores.acento),
+          const SizedBox(height: AppTokens.espacioM),
+          Text(
+            tituloAnuncio(paso, sesion.tipoMisterio),
+            textAlign: TextAlign.center,
+            style: titulo?.copyWith(color: colores.acento),
+          ),
+          const SizedBox(height: AppTokens.espacioL),
+          Text(
+            sesion.tituloMisterioActual,
+            textAlign: TextAlign.center,
+            style: AppTheme.oracion(context).copyWith(fontSize: 22),
+          ),
+          const SizedBox(height: AppTokens.espacioL),
+          Text(
+            'Medita en este misterio.',
+            textAlign: TextAlign.center,
+            style: textos.bodyLarge?.copyWith(
+              fontStyle: FontStyle.italic,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      );
+    }
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(linea1, style: principal),
-        const SizedBox(height: AppTokens.espacioXS),
-        Text(linea2, style: secundario),
+        if (paso.seccion == SeccionRosario.misterio) ...[
+          _RecordatorioMisterio(nombre: sesion.tituloMisterioActual, colores: colores),
+          const SizedBox(height: AppTokens.espacioM),
+        ],
+        Text(tituloOracion(paso), style: titulo),
+        if (paso.repeticion != null) ...[
+          const SizedBox(height: AppTokens.espacioM),
+          RosaryBeadsWidget(current: paso.repeticion!, total: paso.oracion.count!),
+        ],
+        const SizedBox(height: AppTokens.espacioM),
+        if (paso.oracion.type == 'letanias')
+          LetaniasWidget(texto: paso.oracion.text, colores: colores)
+        else
+          Text(paso.oracion.text, style: AppTheme.oracion(context)),
       ],
     );
   }
 }
 
-class _Contenido extends StatelessWidget {
-  const _Contenido({required this.paso, required this.sesion, required this.colores});
+/// Línea pequeña con el misterio que se está meditando.
+class _RecordatorioMisterio extends StatelessWidget {
+  const _RecordatorioMisterio({required this.nombre, required this.colores});
 
-  final PasoRosario paso;
-  final RosarioSession sesion;
+  final String nombre;
   final SeccionColores colores;
 
   @override
   Widget build(BuildContext context) {
-    final textos = Theme.of(context).textTheme;
-
-    if (paso.esAnuncioDeMisterio) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppTokens.espacioL),
-        child: Column(
-          children: [
-            Icon(Icons.auto_awesome, size: 32, color: colores.acento),
-            const SizedBox(height: AppTokens.espacioM),
-            Text(
-              'Medita en este Misterio',
-              textAlign: TextAlign.center,
-              style: textos.titleLarge?.copyWith(color: colores.acento),
-            ),
-            const SizedBox(height: AppTokens.espacioS),
-            Text(sesion.tituloMisterioActual, textAlign: TextAlign.center, style: AppTheme.oracion(context)),
-          ],
-        ),
-      );
-    }
-
-    final repeticion = paso.repeticion;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (paso.seccion == SeccionRosario.misterio) ...[
-          Text(
-            repeticion == null ? paso.oracion.title : '${paso.oracion.title} (${repeticion + 1}°)',
-            style: textos.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: AppTokens.espacioM),
-        ],
-        if (repeticion != null) ...[
-          RosaryBeadsWidget(current: repeticion, total: paso.oracion.count!),
-          const SizedBox(height: AppTokens.espacioM),
-        ],
-        if (paso.oracion.type == 'letanias')
-          LetaniasWidget(texto: paso.oracion.text, colores: colores)
-        else
-          Text(paso.oracion.text, style: AppTheme.oracion(context)),
+        Icon(Icons.auto_awesome, size: 18, color: colores.acento),
+        const SizedBox(width: AppTokens.espacioS),
+        Expanded(
+          child: Text(nombre, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colores.acento)),
+        ),
       ],
     );
   }

@@ -14,9 +14,11 @@ void main() {
 
     await tester.tap(find.text('Comenzar a Rezar'));
     await tester.pumpAndSettle();
-    expect(find.text('Oraciones Iniciales'), findsOneWidget);
+    expect(find.text('Oraciones iniciales · 1 de 3'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Volver al inicio'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Salir'));
     await tester.pumpAndSettle();
     expect(find.text('Comenzar a Rezar'), findsOneWidget);
   });
