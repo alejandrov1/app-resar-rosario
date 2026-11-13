@@ -4,13 +4,7 @@ import 'package:app_resar_rosario/theme/seccion_colores.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Relación de contraste WCAG 2.1 entre dos colores.
-double contraste(Color a, Color b) {
-  final la = a.computeLuminance();
-  final lb = b.computeLuminance();
-  final (claro, oscuro) = la > lb ? (la, lb) : (lb, la);
-  return (claro + 0.05) / (oscuro + 0.05);
-}
+import '../support/contraste.dart';
 
 void main() {
   final temas = <String, ThemeData>{

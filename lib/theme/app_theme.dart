@@ -29,8 +29,9 @@ abstract final class AppTheme {
     final base = ThemeData(colorScheme: esquema);
 
     return base.copyWith(
-      // ThemeData no trae tamaños de letra: se toman de la escala M3 (bodyLarge = 16).
-      textTheme: base.textTheme.merge(Typography.englishLike2021),
+      // Tamaños de la escala M3 con los colores del tema, en el mismo orden que ThemeData.localize.
+      // Al revés (base.merge(englishLike)) se pierde el color: esos estilos tienen inherit: false.
+      textTheme: Typography.englishLike2021.merge(base.textTheme),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(minimumSize: Size(64, alto), shape: forma, textStyle: textoBoton),
       ),
