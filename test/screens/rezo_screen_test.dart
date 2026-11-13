@@ -103,14 +103,23 @@ void main() {
   });
 
   testWidgets('al avanzar, el texto vuelve arriba', (tester) async {
-    final sesion = await mostrarEnPaso(tester, 83); // letanías: texto largo
-    final desplazable = find.byType(Scrollable).first;
-    await tester.drag(desplazable, const Offset(0, -400));
+    // Pantalla chica para que dos pasos contiguos (letanías y Cordero de Dios) desborden.
+    tester.view.physicalSize = const Size(360, 480) * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final sesion = await mostrarEnPaso(tester, 83);
+    ScrollPosition posicion() => tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+
+    expect(posicion().maxScrollExtent, greaterThan(0), reason: 'el paso 83 debe desbordar');
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -400));
     await tester.pumpAndSettle();
-    expect(tester.state<ScrollableState>(desplazable).position.pixels, greaterThan(0));
+    expect(posicion().pixels, greaterThan(0));
+
     sesion.siguiente();
     await tester.pumpAndSettle();
-    expect(tester.state<ScrollableState>(find.byType(Scrollable).first).position.pixels, 0);
+    expect(posicion().maxScrollExtent, greaterThan(0), reason: 'el paso 84 debe desbordar, o el tope ocultaría la falla');
+    expect(posicion().pixels, 0);
   });
 
   testWidgets('el botón Atrás del sistema retrocede un paso', (tester) async {
