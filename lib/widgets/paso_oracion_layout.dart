@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_tokens.dart';
+import '../theme/barras_sistema.dart';
 import '../theme/seccion_colores.dart';
 
 /// Estructura de cada paso del rezo: el fondo de la sección y una tarjeta con la [barra] arriba,
@@ -18,7 +20,8 @@ class PasoOracionLayout extends StatelessWidget {
   });
 
   /// Con menos alto que esto (horizontal con letra grande), la barra se desplaza junto con el cuerpo
-  /// para que los botones nunca se corten.
+  /// para que los botones nunca se corten. Por encima de 200 % de letra el mínimo crece con ella, porque la
+  /// barra (con su contador sin partir) ocupa más líneas.
   static const double altoMinimoBarraFija = 400;
 
   final SeccionColores colores;
@@ -37,50 +40,55 @@ class PasoOracionLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: colores.fondo),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppTokens.anchoMaximo),
-              child: Padding(
-                padding: const EdgeInsets.all(AppTokens.espacioM),
-                child: Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppTokens.espacioL),
-                    child: LayoutBuilder(
-                      builder: (context, limites) {
-                        final barraFija = limites.maxHeight >= altoMinimoBarraFija;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (barraFija) ...[barra, const SizedBox(height: AppTokens.espacioM)],
-                            Expanded(
-                              child: SingleChildScrollView(
-                                key: claveCuerpo,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    if (!barraFija) ...[barra, const SizedBox(height: AppTokens.espacioM)],
-                                    cuerpo,
-                                  ],
+    // El fondo de cada sección es un degradado saturado en todas las variantes: los iconos del sistema van claros.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: estiloBarras(Brightness.light),
+      child: Scaffold(
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: colores.fondo),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: AppTokens.anchoMaximo),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppTokens.espacioM),
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppTokens.espacioL),
+                      child: LayoutBuilder(
+                        builder: (context, limites) {
+                          final escala = MediaQuery.textScalerOf(context).scale(1);
+                        final barraFija = limites.maxHeight >= altoMinimoBarraFija * (escala > 2 ? escala / 2 : 1);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (barraFija) ...[barra, const SizedBox(height: AppTokens.espacioM)],
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  key: claveCuerpo,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      if (!barraFija) ...[barra, const SizedBox(height: AppTokens.espacioM)],
+                                      cuerpo,
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: AppTokens.espacioM),
-                            _Botones(
-                              colores: colores,
-                              onAnterior: onAnterior,
-                              onSiguiente: onSiguiente,
-                              texto: textoSiguiente,
-                            ),
-                          ],
-                        );
-                      },
+                              const SizedBox(height: AppTokens.espacioM),
+                              _Botones(
+                                colores: colores,
+                                onAnterior: onAnterior,
+                                onSiguiente: onSiguiente,
+                                texto: textoSiguiente,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +8,7 @@ import 'screens/principal_screen.dart';
 import 'services/notification_service.dart';
 import 'services/preferences_service.dart';
 import 'theme/app_theme.dart';
+import 'theme/barras_sistema.dart';
 
 /// Raíz de la app: proveedores, temas, idioma y escalado de texto.
 class SantoRosarioApp extends StatelessWidget {
@@ -40,9 +42,14 @@ class SantoRosarioApp extends StatelessWidget {
             // El tamaño elegido en la app se suma al del sistema, una sola vez.
             final sistema = MediaQuery.textScalerOf(context).scale(16) / 16;
             final escala = (sistema * prefs.textScaleFactor).clamp(0.8, 3.0);
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(escala)),
-              child: child!,
+            // Los iconos de la barra de navegación siguen al tema; cada pantalla ajusta los de la barra de estado.
+            final iconos = iconosParaTema(Theme.of(context).brightness);
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: estiloBarras(iconos),
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(escala)),
+                child: child!,
+              ),
             );
           },
           home: const PrincipalScreen(),
