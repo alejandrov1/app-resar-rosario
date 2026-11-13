@@ -66,6 +66,19 @@ void main() {
     semantica.dispose();
   });
 
+  testWidgets('el último recordatorio no queda tapado por el botón Nuevo', (tester) async {
+    await mostrar(tester);
+    for (var i = 0; i < 4; i++) {
+      await crearRecordatorioDelLunes(tester);
+    }
+    expect(find.text('Rezar el Santo Rosario', skipOffstage: false), findsNWidgets(4));
+    await tester.drag(find.byType(ListView), const Offset(0, -3000));
+    await tester.pumpAndSettle();
+    final ultima = tester.getRect(find.byType(Card).last);
+    final boton = tester.getRect(find.byType(FloatingActionButton));
+    expect(ultima.bottom, lessThanOrEqualTo(boton.top), reason: 'la tarjeta termina en ${ultima.bottom}, el botón empieza en ${boton.top}');
+  });
+
   testWidgets('si no se puede programar, lo dice', (tester) async {
     final gateway = await mostrar(tester);
     gateway.failSchedule = true;
