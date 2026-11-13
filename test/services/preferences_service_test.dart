@@ -1,65 +1,65 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:app_resar_rosario/services/preferences_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../support/app_harness.dart';
 
 void main() {
-  group('PreferencesService Tests', () {
-    late PreferencesService preferences;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    setUp(() {
-      preferences = PreferencesService();
-    });
+  test('valores por defecto', () async {
+    final p = await preferenciasDePrueba();
+    expect(p.textScaleFactor, 1.0);
+    expect(p.useHighContrast, isFalse);
+    expect(p.useLargeButtons, isFalse);
+    expect(p.themeMode, ThemeMode.system);
+  });
 
-    test('Valores por defecto deben ser correctos', () {
-      expect(preferences.textScaleFactor, equals(1.0));
-      expect(preferences.useHighContrast, isFalse);
-      expect(preferences.useLargeButtons, isFalse);
-      expect(preferences.themeMode, equals(ThemeMode.system));
-    });
+  test('los cambios se guardan y se recuperan al volver a abrir la app', () async {
+    final p = await preferenciasDePrueba();
+    p
+      ..updateTextScaleFactor(1.5)
+      ..toggleHighContrast()
+      ..toggleLargeButtons()
+      ..updateThemeMode(ThemeMode.dark);
 
-    test('updateTextScaleFactor debe actualizar el valor dentro del rango', () {
-      preferences.updateTextScaleFactor(1.5);
-      expect(preferences.textScaleFactor, equals(1.5));
+    final reabierta = PreferencesService(await SharedPreferences.getInstance());
+    expect(reabierta.textScaleFactor, 1.5);
+    expect(reabierta.useHighContrast, isTrue);
+    expect(reabierta.useLargeButtons, isTrue);
+    expect(reabierta.themeMode, ThemeMode.dark);
+  });
 
-      // No debe actualizar si está fuera del rango
-      preferences.updateTextScaleFactor(0.5);
-      expect(preferences.textScaleFactor, equals(1.5));
+  test('ignora tamaños de texto fuera de rango', () async {
+    final p = await preferenciasDePrueba();
+    p.updateTextScaleFactor(1.4);
+    p.updateTextScaleFactor(0.5);
+    p.updateTextScaleFactor(3.0);
+    expect(p.textScaleFactor, 1.4);
+  });
 
-      preferences.updateTextScaleFactor(3.0);
-      expect(preferences.textScaleFactor, equals(1.5));
-    });
+  test('si lo guardado está dañado usa los valores por defecto', () async {
+    final p = await preferenciasDePrueba({'pref_text_scale': 9.0, 'pref_theme_mode': 7});
+    expect(p.textScaleFactor, 1.0);
+    expect(p.themeMode, ThemeMode.system);
+  });
 
-    test('toggleHighContrast debe alternar el valor', () {
-      expect(preferences.useHighContrast, isFalse);
-      
-      preferences.toggleHighContrast();
-      expect(preferences.useHighContrast, isTrue);
-      
-      preferences.toggleHighContrast();
-      expect(preferences.useHighContrast, isFalse);
-    });
+  test('restablecer borra lo guardado', () async {
+    final p = await preferenciasDePrueba({'pref_large_buttons': true, 'pref_text_scale': 1.8});
+    p.resetToDefaults();
+    final reabierta = PreferencesService(await SharedPreferences.getInstance());
+    expect(reabierta.useLargeButtons, isFalse);
+    expect(reabierta.textScaleFactor, 1.0);
+  });
 
-    test('resetToDefaults debe restaurar todos los valores', () {
-      // Cambiar valores
-      preferences.updateTextScaleFactor(1.8);
-      preferences.toggleHighContrast();
-      preferences.toggleLargeButtons();
-      preferences.updateThemeMode(ThemeMode.dark);
-
-      // Verificar cambios
-      expect(preferences.textScaleFactor, equals(1.8));
-      expect(preferences.useHighContrast, isTrue);
-      expect(preferences.useLargeButtons, isTrue);
-      expect(preferences.themeMode, equals(ThemeMode.dark));
-
-      // Resetear
-      preferences.resetToDefaults();
-
-      // Verificar valores por defecto
-      expect(preferences.textScaleFactor, equals(1.0));
-      expect(preferences.useHighContrast, isFalse);
-      expect(preferences.useLargeButtons, isFalse);
-      expect(preferences.themeMode, equals(ThemeMode.system));
-    });
+  test('avisa a quien escucha en cada cambio', () async {
+    final p = await preferenciasDePrueba();
+    var avisos = 0;
+    p.addListener(() => avisos++);
+    p
+      ..toggleHighContrast()
+      ..updateThemeMode(ThemeMode.light);
+    expect(avisos, 2);
   });
 }

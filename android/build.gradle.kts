@@ -1,20 +1,24 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-//
-// Plugins and repositories are managed in settings.gradle.kts.
-// This file can be used for other global configurations.
-
-// Redirect the build output to the root of the Flutter project.
-rootProject.buildDir = rootProject.file("../build")
-subprojects {
-    project.buildDir = rootProject.file("${rootProject.buildDir}/${project.name}")
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
-// Ensure that the subproject ':app' is evaluated before any other subproject.
+val newBuildDir: Directory =
+    rootProject.layout.buildDirectory
+        .dir("../../build")
+        .get()
+rootProject.layout.buildDirectory.value(newBuildDir)
+
 subprojects {
-    evaluationDependsOn(":app")
+    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+    project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+subprojects {
+    project.evaluationDependsOn(":app")
 }
 
-// Task to clean the root build directory.
 tasks.register<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }

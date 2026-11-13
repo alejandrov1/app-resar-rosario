@@ -1,274 +1,284 @@
-import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../services/notification_service.dart';
+
 import '../models/reminder_model.dart';
+import '../services/notification_service.dart';
+import '../theme/app_tokens.dart';
 import '../widgets/reminder_form.dart';
-import '../constants/app_constants.dart';
 
+/// Lista de recordatorios con alta, edición, activación y borrado.
 class AgendarRosarioScreen extends StatefulWidget {
-  final PreferencesService preferences;
-
-  const AgendarRosarioScreen({Key? key, required this.preferences}) : super(key: key);
+  const AgendarRosarioScreen({super.key});
 
   @override
   State<AgendarRosarioScreen> createState() => _AgendarRosarioScreenState();
 }
 
-class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> {
-  late NotificationService _notificationService;
-
+class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _notificationService = context.read<NotificationService>();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndRequestPermissions();
-    });
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _pedirPermisoSiFalta());
   }
 
-  Future<void> _checkAndRequestPermissions() async {
-    final hasPermissions = await _notificationService.hasPermissions();
-    if (!hasPermissions && mounted) {
-      final requested = await _notificationService.requestPermissions();
-      if (!requested && mounted) {
-        _showPermissionsErrorDialog();
-      }
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Al volver de los ajustes del sistema, se revisan los permisos.
+    if (state == AppLifecycleState.resumed) {
+      context.read<NotificationService>().refreshPermissions();
     }
   }
-  
-  void _showReminderForm({RosarioReminder? reminder}) {
-    showModalBottomSheet(
+
+  Future<void> _pedirPermisoSiFalta() async {
+    final servicio = context.read<NotificationService>();
+    if (servicio.isAvailable && !servicio.permissions.notifications) {
+      await servicio.requestPermissions();
+    }
+  }
+
+  Future<void> _avisar(Future<ReminderResult> operacion) async {
+    final mensajero = ScaffoldMessenger.of(context);
+    final resultado = await operacion;
+    if (!resultado.ok) {
+      mensajero.showSnackBar(SnackBar(content: Text(resultado.message!)));
+    }
+  }
+
+  void _abrirFormulario({RosarioReminder? recordatorio}) {
+    HapticFeedback.lightImpact();
+    final servicio = context.read<NotificationService>();
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppConstants.radiusM)),
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (hoja) => ReminderForm(
+        reminder: recordatorio,
+        onSave: (guardado) {
+          Navigator.pop(hoja);
+          _avisar(recordatorio == null ? servicio.addReminder(guardado) : servicio.updateReminder(guardado));
+        },
       ),
-      builder: (ctx) { // Usamos un nuevo BuildContext 'ctx' del builder
-        return ReminderForm(
-          reminder: reminder,
-          onSave: (newReminder) async {
-            // SOLUCIÓN: Lógica de guardado robusta.
-            bool success = false;
-            try {
-              // El 'id' es 0 si es un recordatorio nuevo.
-              if (newReminder.id == 0) {
-                success = await _notificationService.addReminder(newReminder);
-              } else {
-                success = await _notificationService.updateReminder(newReminder);
-              }
-
-              // Solo interactuar con la UI si el widget sigue montado.
-              if (!ctx.mounted) return;
-              
-              Navigator.pop(ctx); // Cerrar el modal DESPUÉS de guardar.
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success ? 'Recordatorio guardado.' : 'Error al guardar el recordatorio.'),
-                  backgroundColor: success ? Colors.green : Colors.red,
-                ),
-              );
-
-            } catch (e) {
-               debugPrint("Error al guardar: $e");
-               if (ctx.mounted) Navigator.pop(ctx);
-               _showSaveErrorDialog();
-            }
-          },
-        );
-      },
     );
+  }
+
+  Future<void> _confirmarEliminar(RosarioReminder recordatorio) async {
+    final servicio = context.read<NotificationService>();
+    final eliminar = await showDialog<bool>(
+      context: context,
+      builder: (dialogo) => AlertDialog(
+        title: const Text('Eliminar recordatorio'),
+        content: Text('¿Quieres eliminar "${recordatorio.title}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Eliminar')),
+        ],
+      ),
+    );
+    if (eliminar ?? false) await _avisar(servicio.removeReminder(recordatorio.id));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Recordatorios'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_active_outlined),
-            tooltip: 'Probar Notificación',
-            onPressed: _sendTestNotification,
-          ),
-        ],
-      ),
-      body: Consumer<NotificationService>( // Consumer reconstruye la lista cuando hay cambios.
-        builder: (context, service, child) {
-          if (service.reminders.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(AppConstants.spacingL),
-                child: Text(
-                  'Aún no tienes recordatorios.\n¡Presiona el botón "+" para agregar el primero!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: AppConstants.fontSizeM, color: AppConstants.textSecondary),
-                ),
-              ),
-            );
-          }
-          final sortedReminders = List<RosarioReminder>.from(service.reminders)
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final servicio = context.watch<NotificationService>();
+    final recordatorios = servicio.reminders;
 
-          return ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80, top: 8),
-            itemCount: sortedReminders.length,
-            itemBuilder: (context, index) {
-              final reminder = sortedReminders[index];
-              return _buildReminderCard(reminder);
-            },
-          );
-        },
+    return Scaffold(
+      appBar: AppBar(title: const Text('Mis recordatorios')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _abrirFormulario,
+        icon: const Icon(Icons.add),
+        label: const Text('Nuevo'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showReminderForm(),
-        tooltip: 'Agregar Recordatorio',
-        child: const Icon(Icons.add),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(AppTokens.espacioM, AppTokens.espacioS, AppTokens.espacioM, 96),
+        children: [
+          _AvisoPermisos(servicio: servicio),
+          if (recordatorios.isEmpty)
+            const _SinRecordatorios()
+          else
+            for (final r in recordatorios)
+              _TarjetaRecordatorio(
+                recordatorio: r,
+                onCambiar: () => _avisar(servicio.toggleReminder(r.id)),
+                onEditar: () => _abrirFormulario(recordatorio: r),
+                onEliminar: () => _confirmarEliminar(r),
+              ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildReminderCard(RosarioReminder reminder) {
+class _AvisoPermisos extends StatelessWidget {
+  const _AvisoPermisos({required this.servicio});
+
+  final NotificationService servicio;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!servicio.isAvailable) {
+      return _Aviso(
+        icono: Icons.notifications_off_outlined,
+        texto: servicio.initError ?? 'Las notificaciones no están disponibles.',
+      );
+    }
+    if (!servicio.permissions.notifications) {
+      return _Aviso(
+        icono: Icons.notifications_off_outlined,
+        texto: 'Las notificaciones están desactivadas. Sin ellas, los recordatorios no sonarán.',
+        accion: 'Permitir notificaciones',
+        onAccion: () async {
+          final permisos = await servicio.requestPermissions();
+          if (!permisos.notifications) await servicio.openSettings();
+        },
+      );
+    }
+    if (!servicio.permissions.exactAlarms) {
+      return _Aviso(
+        icono: Icons.schedule_outlined,
+        texto: 'Los avisos pueden llegar con unos minutos de retraso. Para que suenen a la hora exacta, '
+            'permite "Alarmas y recordatorios".',
+        accion: 'Permitir',
+        onAccion: servicio.requestExactAlarms,
+      );
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+class _Aviso extends StatelessWidget {
+  const _Aviso({required this.icono, required this.texto, this.accion, this.onAccion});
+
+  final IconData icono;
+  final String texto;
+  final String? accion;
+  final VoidCallback? onAccion;
+
+  @override
+  Widget build(BuildContext context) {
+    final esquema = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: AppConstants.spacingS, vertical: AppConstants.spacingXS),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.radiusS)),
+      color: esquema.secondaryContainer,
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.spacingS),
+        padding: const EdgeInsets.all(AppTokens.espacioM),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Icon(icono, color: esquema.onSecondaryContainer),
+                const SizedBox(width: AppTokens.espacioM),
                 Expanded(
-                  child: Text(
-                    reminder.title,
-                    style: const TextStyle(fontSize: AppConstants.fontSizeM, fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Switch(
-                  value: reminder.isActive,
-                  onChanged: (value) {
-                    _notificationService.toggleReminder(reminder.id);
-                  },
+                  child: Text(texto, style: textos.bodyMedium?.copyWith(color: esquema.onSecondaryContainer)),
                 ),
               ],
             ),
-            const SizedBox(height: AppConstants.spacingXS),
-            Text(
-              '${reminder.timeText} - ${reminder.daysText}',
-              style: TextStyle(color: Colors.grey.shade700),
-            ),
-            Text(
-              'Tipo: ${reminder.type.displayName}',
-               style: TextStyle(color: Colors.grey.shade600, fontStyle: FontStyle.italic),
-            ),
-            const SizedBox(height: AppConstants.spacingXS),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  icon: const Icon(Icons.edit, size: 20),
-                  label: const Text('Editar'),
-                  onPressed: () => _showReminderForm(reminder: reminder),
-                ),
-                const SizedBox(width: AppConstants.spacingXS),
-                TextButton.icon(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  label: const Text('Eliminar'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  onPressed: () => _confirmDelete(reminder),
-                ),
-              ],
-            )
+            if (accion != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(onPressed: onAccion, child: Text(accion!)),
+              ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _confirmDelete(RosarioReminder reminder) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('¿Eliminar Recordatorio?'),
-        content: Text('Estás a punto de eliminar "${reminder.title}". Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _notificationService.removeReminder(reminder.id);
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Eliminar'),
+class _SinRecordatorios extends StatelessWidget {
+  const _SinRecordatorios();
+
+  @override
+  Widget build(BuildContext context) {
+    final esquema = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.espacioXL * 2, horizontal: AppTokens.espacioL),
+      child: Column(
+        children: [
+          Icon(Icons.alarm_add, size: 80, color: esquema.onSurfaceVariant),
+          const SizedBox(height: AppTokens.espacioL),
+          Text('No hay recordatorios', style: textos.titleLarge, textAlign: TextAlign.center),
+          const SizedBox(height: AppTokens.espacioS),
+          Text(
+            'Toca «Nuevo» para programar tu primer recordatorio del Santo Rosario.',
+            textAlign: TextAlign.center,
+            style: textos.bodyMedium?.copyWith(color: esquema.onSurfaceVariant),
           ),
         ],
       ),
     );
   }
+}
 
-  Future<void> _sendTestNotification() async {
-    final success = await _notificationService.sendTestNotification();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success
-              ? 'Notificación de prueba enviada.'
-              : 'Error al enviar. Revisa los permisos.'),
-          backgroundColor: success ? Colors.green : Colors.red,
+class _TarjetaRecordatorio extends StatelessWidget {
+  const _TarjetaRecordatorio({
+    required this.recordatorio,
+    required this.onCambiar,
+    required this.onEditar,
+    required this.onEliminar,
+  });
+
+  final RosarioReminder recordatorio;
+  final VoidCallback onCambiar;
+  final VoidCallback onEditar;
+  final VoidCallback onEliminar;
+
+  @override
+  Widget build(BuildContext context) {
+    final esquema = Theme.of(context).colorScheme;
+    final textos = Theme.of(context).textTheme;
+    final activo = recordatorio.isActive;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: AppTokens.espacioS),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTokens.espacioM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(recordatorio.type.icon, color: esquema.primary),
+                const SizedBox(width: AppTokens.espacioS),
+                Expanded(child: Text(recordatorio.title, style: textos.titleMedium)),
+                Semantics(
+                  label: activo ? 'Desactivar ${recordatorio.title}' : 'Activar ${recordatorio.title}',
+                  child: Switch(value: activo, onChanged: (_) => onCambiar()),
+                ),
+              ],
+            ),
+            Text(
+              recordatorio.time.format(context),
+              style: textos.displaySmall?.copyWith(color: activo ? esquema.onSurface : esquema.onSurfaceVariant),
+            ),
+            Text(recordatorio.daysText, style: textos.bodyMedium),
+            const SizedBox(height: AppTokens.espacioS),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const Text('Editar')),
+                TextButton.icon(
+                  onPressed: onEliminar,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Eliminar'),
+                  style: TextButton.styleFrom(foregroundColor: esquema.error),
+                ),
+              ],
+            ),
+          ],
         ),
-      );
-    }
-  }
-
-  void _showPermissionsErrorDialog() {
-    if(!mounted) return;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Permisos Requeridos"),
-        content: const Text(
-            "Para programar alarmas, la app necesita permisos especiales. Por favor, actívalos desde la configuración de tu dispositivo."),
-        actions: [
-          TextButton(
-            child: const Text("Abrir configuración"),
-            onPressed: () {
-              openAppSettings();
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text("OK"),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showSaveErrorDialog() {
-    if(!mounted) return;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Error al Guardar"),
-        content: const Text(
-            "No se pudo guardar el recordatorio. Por favor, revisa que la aplicación tenga todos los permisos necesarios en la configuración del sistema."),
-        actions: [
-          TextButton(
-            child: const Text("OK"),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
       ),
     );
   }
