@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/reminder_model.dart';
 import '../services/notification_service.dart';
 import '../theme/app_tokens.dart';
-import '../widgets/reminder_form.dart';
+import 'recordatorio_form_screen.dart';
 
 /// Lista de recordatorios con alta, edición, activación y borrado.
 class AgendarRosarioScreen extends StatefulWidget {
@@ -52,22 +52,12 @@ class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with Widget
     }
   }
 
-  void _abrirFormulario({RosarioReminder? recordatorio}) {
+  Future<void> _abrirFormulario({RosarioReminder? recordatorio}) async {
     HapticFeedback.lightImpact();
     final servicio = context.read<NotificationService>();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (hoja) => ReminderForm(
-        reminder: recordatorio,
-        onSave: (guardado) {
-          Navigator.pop(hoja);
-          _avisar(recordatorio == null ? servicio.addReminder(guardado) : servicio.updateReminder(guardado));
-        },
-      ),
-    );
+    final guardado = await RecordatorioFormScreen.abrir(context, recordatorio: recordatorio);
+    if (guardado == null || !mounted) return;
+    await _avisar(recordatorio == null ? servicio.addReminder(guardado) : servicio.updateReminder(guardado));
   }
 
   Future<void> _confirmarEliminar(RosarioReminder recordatorio) async {
