@@ -182,7 +182,11 @@ class _Aviso extends StatelessWidget {
             if (accion != null)
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: onAccion, child: Text(accion!)),
+                child: TextButton(
+                  onPressed: onAccion,
+                  style: TextButton.styleFrom(foregroundColor: esquema.onSecondaryContainer),
+                  child: Text(accion!),
+                ),
               ),
           ],
         ),

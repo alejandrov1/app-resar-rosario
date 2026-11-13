@@ -34,15 +34,15 @@ Future<NotificationService> notificacionesDePrueba(
 
 /// Todo lo que necesita la app completa, con dobles.
 Future<({PreferencesService preferencias, NotificationService notificaciones, FakeNotificationsGateway gateway})>
-    dependenciasDePrueba({Map<String, Object> preferencias = const {}}) async {
+    dependenciasDePrueba({Map<String, Object> preferencias = const {}, FakeNotificationsGateway? gateway}) async {
   final prefs = await preferenciasDePrueba(preferencias);
-  final gateway = FakeNotificationsGateway();
-  return (preferencias: prefs, notificaciones: await notificacionesDePrueba(gateway), gateway: gateway);
+  final g = gateway ?? FakeNotificationsGateway();
+  return (preferencias: prefs, notificaciones: await notificacionesDePrueba(g), gateway: g);
 }
 
 /// La app completa, lista para `pumpWidget`.
-Future<Widget> appDePrueba({Map<String, Object> preferencias = const {}}) async {
-  final d = await dependenciasDePrueba(preferencias: preferencias);
+Future<Widget> appDePrueba({Map<String, Object> preferencias = const {}, FakeNotificationsGateway? gateway}) async {
+  final d = await dependenciasDePrueba(preferencias: preferencias, gateway: gateway);
   return SantoRosarioApp(preferencias: d.preferencias, notificaciones: d.notificaciones, reloj: () => lunes);
 }
 
