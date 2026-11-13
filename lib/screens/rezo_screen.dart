@@ -55,10 +55,10 @@ class RezoScreen extends StatelessWidget {
 /// Título del anuncio de un misterio: "2.º Misterio Luminoso".
 String tituloAnuncio(PasoRosario paso, TipoMisterio tipo) => '${paso.misterio! + 1}.º Misterio ${tipo.singular}';
 
-/// Título de la oración del paso; durante la decena lleva el número: "Ave María · 3 de 10".
+/// Título de la oración del paso; durante la decena lleva el número: "Ave María · 3 de 10" (espacios duros).
 String tituloOracion(PasoRosario paso) => paso.repeticion == null
     ? paso.oracion.title
-    : '${paso.oracion.title} · ${paso.repeticion! + 1} de ${paso.oracion.count}';
+    : '${paso.oracion.title} · ${paso.repeticion! + 1}\u00A0de\u00A0${paso.oracion.count}';
 
 class _Cuerpo extends StatelessWidget {
   const _Cuerpo({required this.paso, required this.sesion, required this.colores});

@@ -13,14 +13,14 @@ void main() {
 
     // Momentos clave del recorrido: índice del paso → textos que deben verse una vez.
     const hitos = <int, List<String>>{
-      0: ['Oraciones iniciales · 1 de 3', 'Señal de la Cruz'],
-      3: ['Misterios Gozosos · 1 de 5', '1.º Misterio Gozoso'],
-      5: ['Misterios Gozosos · 1 de 5', 'Ave María · 1 de 10'],
-      14: ['Misterios Gozosos · 1 de 5', 'Ave María · 10 de 10'],
-      19: ['Misterios Gozosos · 2 de 5', '2.º Misterio Gozoso'],
-      67: ['Misterios Gozosos · 5 de 5', '5.º Misterio Gozoso'],
-      83: ['Oraciones finales · 1 de 10', 'Letanías de la Santísima Virgen'],
-      92: ['Oraciones finales · 10 de 10', 'Dulce Madre'],
+      0: ['Oraciones iniciales · 1\u00A0de\u00A03', 'Señal de la Cruz'],
+      3: ['Misterios Gozosos · 1\u00A0de\u00A05', '1.º Misterio Gozoso'],
+      5: ['Misterios Gozosos · 1\u00A0de\u00A05', 'Ave María · 1\u00A0de\u00A010'],
+      14: ['Misterios Gozosos · 1\u00A0de\u00A05', 'Ave María · 10\u00A0de\u00A010'],
+      19: ['Misterios Gozosos · 2\u00A0de\u00A05', '2.º Misterio Gozoso'],
+      67: ['Misterios Gozosos · 5\u00A0de\u00A05', '5.º Misterio Gozoso'],
+      83: ['Oraciones finales · 1\u00A0de\u00A010', 'Letanías de la Santísima Virgen'],
+      92: ['Oraciones finales · 10\u00A0de\u00A010', 'Dulce Madre'],
     };
 
     for (var paso = 0; paso < 93; paso++) {

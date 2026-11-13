@@ -13,9 +13,11 @@ String nombreSeccion(PasoRosario paso, TipoMisterio tipo) => switch (paso.seccio
     };
 
 /// Avance dentro de la sección: la oración en iniciales y finales, el misterio en los misterios.
+/// Los espacios son duros ("1 de 10" nunca se parte con letra grande).
 String avanceSeccion(PasoRosario paso) => switch (paso.seccion) {
-      SeccionRosario.misterio => '${paso.misterio! + 1} de $misteriosPorRosario',
-      SeccionRosario.iniciales || SeccionRosario.finales => '${paso.indiceEnSeccion + 1} de ${paso.totalEnSeccion}',
+      SeccionRosario.misterio => '${paso.misterio! + 1}\u00A0de\u00A0$misteriosPorRosario',
+      SeccionRosario.iniciales ||
+      SeccionRosario.finales => '${paso.indiceEnSeccion + 1}\u00A0de\u00A0${paso.totalEnSeccion}',
     };
 
 /// Contexto del rezo, dicho una sola vez: inicio, sección con su avance y avance del rosario completo.
@@ -52,6 +54,13 @@ class BarraRezo extends StatelessWidget {
               icon: const Icon(Icons.home_outlined),
               tooltip: 'Volver al inicio',
               color: colores.acento,
+              // La casita queda al ras del borde del contenido; el área de toque sigue siendo de 48 dp.
+              alignment: AlignmentDirectional.centerStart,
+              padding: EdgeInsets.zero,
+              style: IconButton.styleFrom(
+                minimumSize: const Size.square(AppTokens.botonNormal),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
             const SizedBox(width: AppTokens.espacioXS),
             Expanded(
@@ -88,8 +97,8 @@ Future<void> confirmarSalida(BuildContext context, VoidCallback onSalir) async {
       title: const Text('¿Salir del rosario?'),
       content: const Text('Se perderá el avance de este rosario.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Seguir rezando')),
-        FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Salir')),
+        TextButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Salir')),
+        FilledButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Seguir rezando')),
       ],
     ),
   );

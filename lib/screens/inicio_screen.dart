@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../logic/rosario_session.dart';
 import '../models/prayer_models.dart';
 import '../theme/app_tokens.dart';
+import '../theme/barras_sistema.dart';
 import '../theme/seccion_colores.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/misterios_del_dia_modal.dart';
@@ -50,6 +51,8 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
         foregroundColor: secciones.tituloInicio,
         elevation: 0,
         scrolledUnderElevation: 0,
+        // El fondo es un degradado que cambia con el tema: los iconos de la barra de estado también.
+        systemOverlayStyle: estiloBarras(iconosParaTema(Theme.of(context).brightness)),
       ),
       drawer: const AppDrawer(),
       body: DecoratedBox(
@@ -119,13 +122,17 @@ class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderSt
                           backgroundColor: colores.boton,
                           foregroundColor: colores.sobreBoton,
                         ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.favorite_rounded),
-                            SizedBox(width: AppTokens.espacioS),
-                            Flexible(child: Text('Comenzar a Rezar')),
-                          ],
+                        // La etiqueta no se parte: si no cabe con letra grande, se reduce.
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.favorite_rounded),
+                              SizedBox(width: AppTokens.espacioS),
+                              Text('Comenzar a Rezar', maxLines: 1),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -179,10 +186,15 @@ class _MisterioDelDia extends StatelessWidget {
                   decoration: BoxDecoration(color: colores.boton, borderRadius: BorderRadius.circular(999)),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppTokens.espacioL, vertical: AppTokens.espacioS),
-                    child: Text(
-                      'Misterios ${tipo.nombre}',
-                      textAlign: TextAlign.center,
-                      style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
+                    // La píldora conserva su forma: el texto se reduce en vez de partirse.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Misterios ${tipo.nombre}',
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ),

@@ -25,12 +25,13 @@ void main() {
     final pasos = construirPasos();
     expect(tituloAnuncio(pasos[19], TipoMisterio.luminosos), '2.º Misterio Luminoso');
     expect(tituloOracion(pasos[0]), 'Señal de la Cruz');
-    expect(tituloOracion(pasos[7]), 'Ave María · 3 de 10');
+    expect(tituloOracion(pasos[7]), 'Ave María · 3\u00A0de\u00A010');
+    expect(tituloOracion(pasos[7]).contains('3 de'), isFalse);
   });
 
   testWidgets('primer paso: oraciones iniciales, sin botón para retroceder', (tester) async {
     await mostrarEnPaso(tester, 0);
-    expect(find.text('Oraciones iniciales · 1 de 3'), findsOneWidget);
+    expect(find.text('Oraciones iniciales · 1\u00A0de\u00A03'), findsOneWidget);
     expect(find.text('Señal de la Cruz'), findsOneWidget);
     expect(find.byTooltip('Paso anterior'), findsNothing);
   });
@@ -47,7 +48,7 @@ void main() {
 
   testWidgets('anuncio del primer misterio: cada dato una vez', (tester) async {
     await mostrarEnPaso(tester, 3);
-    expect(find.text('Misterios Gozosos · 1 de 5'), findsOneWidget);
+    expect(find.text('Misterios Gozosos · 1\u00A0de\u00A05'), findsOneWidget);
     expect(find.text('1.º Misterio Gozoso'), findsOneWidget);
     expect(find.text('Medita en este misterio.'), findsOneWidget);
     expect(find.text('La Encarnación del Hijo de Dios'), findsOneWidget);
@@ -55,7 +56,7 @@ void main() {
 
   testWidgets('Ave María: título con su número, cuentas y el misterio como recordatorio', (tester) async {
     await mostrarEnPaso(tester, 5);
-    expect(find.text('Ave María · 1 de 10'), findsOneWidget);
+    expect(find.text('Ave María · 1\u00A0de\u00A010'), findsOneWidget);
     expect(find.text('La Encarnación del Hijo de Dios'), findsOneWidget);
     expect(find.byType(RosaryBeadsWidget), findsOneWidget);
   });
@@ -70,7 +71,7 @@ void main() {
         expect(find.textContaining(sesion.tituloMisterioActual), findsOneWidget, reason: 'paso $i: misterio');
       }
       if (paso.repeticion != null) {
-        expect(find.textContaining('${paso.repeticion! + 1} de 10'), findsOneWidget, reason: 'paso $i: Ave María');
+        expect(find.textContaining('${paso.repeticion! + 1}\u00A0de\u00A010'), findsOneWidget, reason: 'paso $i: Ave María');
       }
       if (i < 92) {
         sesion.siguiente();

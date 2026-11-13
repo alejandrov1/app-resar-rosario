@@ -11,15 +11,15 @@ void main() {
 
   test('nombre y avance de cada sección', () {
     expect(nombreSeccion(pasos[0], TipoMisterio.gozosos), 'Oraciones iniciales');
-    expect(avanceSeccion(pasos[0]), '1 de 3');
+    expect(avanceSeccion(pasos[0]), '1\u00A0de\u00A03');
     expect(nombreSeccion(pasos[3], TipoMisterio.luminosos), 'Misterios Luminosos');
-    expect(avanceSeccion(pasos[3]), '1 de 5');
-    expect(avanceSeccion(pasos[14]), '1 de 5');
-    expect(avanceSeccion(pasos[19]), '2 de 5');
-    expect(avanceSeccion(pasos[67]), '5 de 5');
+    expect(avanceSeccion(pasos[3]), '1\u00A0de\u00A05');
+    expect(avanceSeccion(pasos[14]), '1\u00A0de\u00A05');
+    expect(avanceSeccion(pasos[19]), '2\u00A0de\u00A05');
+    expect(avanceSeccion(pasos[67]), '5\u00A0de\u00A05');
     expect(nombreSeccion(pasos[83], TipoMisterio.gozosos), 'Oraciones finales');
-    expect(avanceSeccion(pasos[83]), '1 de 10');
-    expect(avanceSeccion(pasos[92]), '10 de 10');
+    expect(avanceSeccion(pasos[83]), '1\u00A0de\u00A010');
+    expect(avanceSeccion(pasos[92]), '10\u00A0de\u00A010');
   });
 
   Future<List<int>> mostrar(WidgetTester tester) async {
@@ -41,7 +41,7 @@ void main() {
 
   testWidgets('muestra la sección y su avance en un solo texto', (tester) async {
     await mostrar(tester);
-    expect(find.text('Misterios Gozosos · 1 de 5'), findsOneWidget);
+    expect(find.text('Misterios Gozosos · 1\u00A0de\u00A05'), findsOneWidget);
   });
 
   testWidgets('anuncia el avance total al lector de pantalla', (tester) async {
@@ -67,5 +67,23 @@ void main() {
     await tester.tap(find.text('Salir'));
     await tester.pumpAndSettle();
     expect(salidas, [1]);
+  });
+
+  test('los contadores no se parten: espacios duros entre el número y "de"', () {
+    for (final paso in pasos) {
+      final avance = avanceSeccion(paso);
+      expect(avance, matches(RegExp(r'^\d+\u00A0de\u00A0\d+$')), reason: avance);
+      expect(avance.contains(' '), isFalse, reason: avance);
+    }
+  });
+
+  testWidgets('"Seguir rezando" es la acción destacada y "Salir" no', (tester) async {
+    await mostrar(tester);
+    await tester.tap(find.byTooltip('Volver al inicio'));
+    await tester.pumpAndSettle();
+    expect(find.ancestor(of: find.text('Seguir rezando'), matching: find.byType(FilledButton)), findsOneWidget);
+    expect(find.ancestor(of: find.text('Salir'), matching: find.byType(TextButton)), findsOneWidget);
+    expect(find.ancestor(of: find.text('Salir'), matching: find.byType(FilledButton)), findsNothing);
+    expect(tester.getTopLeft(find.text('Salir')).dx, lessThan(tester.getTopLeft(find.text('Seguir rezando')).dx));
   });
 }
