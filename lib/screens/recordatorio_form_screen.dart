@@ -176,7 +176,9 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         final navegador = Navigator.of(context);
-        if (await _confirmarDescarte()) {
+        final descartar = await _confirmarDescarte();
+        if (!mounted) return;
+        if (descartar) {
           _cerrando = true;
           navegador.pop();
         }
@@ -338,6 +340,7 @@ class _SelectorHora extends StatelessWidget {
       child: Semantics(
         button: true,
         label: 'Hora: $texto. Toca para cambiarla',
+        onTap: onTap,
         excludeSemantics: true,
         child: InkWell(
           onTap: onTap,
@@ -415,6 +418,7 @@ class _BotonDia extends StatelessWidget {
         button: true,
         selected: marcado,
         label: nombre,
+        onTap: onTap,
         excludeSemantics: true,
         child: SizedBox.square(
           dimension: 48,

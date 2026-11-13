@@ -2,6 +2,7 @@ import 'package:app_resar_rosario/models/reminder_model.dart';
 import 'package:app_resar_rosario/screens/recordatorio_form_screen.dart';
 import 'package:app_resar_rosario/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -149,6 +150,31 @@ void main() {
     await abrir(tester);
     expect(find.bySemanticsLabel(RegExp(r'^Hora: .+\. Toca para cambiarla$')), findsOneWidget);
     await tocar(tester, find.text('Toca para cambiarla'));
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    handle.dispose();
+  });
+
+  testWidgets('un día se activa con el lector de pantalla', (tester) async {
+    final handle = tester.ensureSemantics();
+    final resultados = await abrir(tester);
+    final lunes = find.bySemanticsLabel('Lunes');
+    expect(tester.getSemantics(lunes), matchesSemantics(label: 'Lunes', isButton: true, hasTapAction: true, hasSelectedState: true));
+    tester.semantics.tap(find.semantics.byLabel('Lunes'));
+    await tester.pumpAndSettle();
+    expect(tester.getSemantics(lunes), matchesSemantics(label: 'Lunes', isButton: true, hasTapAction: true, hasSelectedState: true, isSelected: true));
+    await tester.tap(find.text('Guardar'));
+    await tester.pumpAndSettle();
+    expect(resultados.single!.daysOfWeek, [1]);
+    handle.dispose();
+  });
+
+  testWidgets('la hora se abre con el lector de pantalla', (tester) async {
+    final handle = tester.ensureSemantics();
+    await abrir(tester);
+    final hora = find.bySemanticsLabel(RegExp(r'^Hora: '));
+    expect(tester.getSemantics(hora).getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    tester.semantics.tap(find.semantics.byLabel(RegExp(r'^Hora: ')));
+    await tester.pumpAndSettle();
     expect(find.byType(TimePickerDialog), findsOneWidget);
     handle.dispose();
   });
