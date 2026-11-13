@@ -25,7 +25,7 @@ class RosaryImageWidget extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppTokens.fondoFoto,
+        color: Theme.of(context).brightness == Brightness.dark ? AppTokens.fondoFotoOscuro : AppTokens.fondoFoto,
         borderRadius: borderRadius,
         boxShadow: [
           BoxShadow(color: AppTokens.sombraFoto, spreadRadius: 2, blurRadius: 20, offset: const Offset(0, 10)),

@@ -62,6 +62,9 @@ class _Valores {
   int get hashCode => Object.hash(titulo, hora, Object.hashAllUnordered(dias), tipo, descripcion);
 }
 
+/// Aumento máximo del texto en la barra superior (título y "Guardar").
+const double _escalaMaximaBarra = 1.3;
+
 class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
   final _formulario = GlobalKey<FormState>();
   final _claveDias = GlobalKey();
@@ -195,19 +198,26 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
             tooltip: 'Cerrar',
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(nuevo ? 'Nuevo recordatorio' : 'Editar recordatorio'),
+          // La barra superior mantiene sus proporciones: su texto crece hasta 130 % y el resto se reduce.
+          title: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: _escalaMaximaBarra,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(nuevo ? 'Nuevo recordatorio' : 'Editar recordatorio'),
+            ),
           ),
           actions: [
             Padding(
               padding: const EdgeInsetsDirectional.only(end: AppTokens.espacioS),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 160),
-                child: FilledButton(
-                  onPressed: _guardar,
-                  child: const FittedBox(fit: BoxFit.scaleDown, child: Text('Guardar', maxLines: 1)),
+                child: MediaQuery.withClampedTextScaling(
+                  maxScaleFactor: _escalaMaximaBarra,
+                  child: FilledButton(
+                    onPressed: _guardar,
+                    child: const FittedBox(fit: BoxFit.scaleDown, child: Text('Guardar', maxLines: 1)),
+                  ),
                 ),
               ),
             ),
@@ -218,7 +228,10 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
           child: Form(
             key: _formulario,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTokens.espacioM),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.margenFormulario,
+                vertical: AppTokens.espacioM,
+              ),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: AppTokens.anchoMaximo),

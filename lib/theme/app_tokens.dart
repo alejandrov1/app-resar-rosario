@@ -17,6 +17,9 @@ abstract final class AppTokens {
   static const double botonNormal = 48;
   static const double botonGrande = 64;
 
+  /// Margen horizontal del formulario: con 12 dp a cada lado, 360 dp de pantalla alcanzan para 7 botones de 48 dp.
+  static const double margenFormulario = espacioS + espacioXS;
+
   /// Ancho máximo del contenido (tabletas).
   static const double anchoMaximo = 600;
 
@@ -25,6 +28,10 @@ abstract final class AppTokens {
 
   /// Fondo blanco que enmarca la foto del rosario (pertenece a la foto, igual en todas las variantes).
   static const Color fondoFoto = Color(0xFFFFFFFF);
+
+  /// Marco de la foto en los temas oscuros: gris lavanda muy claro, sin el deslumbramiento del blanco,
+  /// que deja bien visible el trazo morado del dibujo.
+  static const Color fondoFotoOscuro = Color(0xFFE4E1EC);
 
   /// Sombra bajo la foto del rosario (negro al 20 %).
   static const Color sombraFoto = Color(0x33000000);
