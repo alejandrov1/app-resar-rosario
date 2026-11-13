@@ -15,67 +15,71 @@ class AppDrawer extends StatelessWidget {
     final colores = context.secciones.iniciales;
     final textos = Theme.of(context).textTheme;
 
+    // Todo el menú se desplaza junto: con letra grande o en horizontal la cabecera, las opciones y la versión
+    // no caben a la vez, y así ninguna se corta.
     return Drawer(
-      child: Column(
-        children: [
-          ColoredBox(
-            color: colores.boton,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.all(AppTokens.espacioL),
-                child: Row(
-                  children: [
-                    Icon(Icons.favorite, size: 32, color: colores.sobreBoton),
-                    const SizedBox(width: AppTokens.espacioM),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Santo Rosario',
-                            style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            ColoredBox(
+              color: colores.boton,
+              child: SizedBox(
+                width: double.infinity,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTokens.espacioL),
+                    child: Row(
+                      children: [
+                        Icon(Icons.favorite, size: 32, color: colores.sobreBoton),
+                        const SizedBox(width: AppTokens.espacioM),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Santo Rosario',
+                                style: textos.titleLarge?.copyWith(
+                                  color: colores.sobreBoton,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text('Menú principal', style: textos.bodyMedium?.copyWith(color: colores.sobreBoton)),
+                            ],
                           ),
-                          Text('Menú principal', style: textos.bodyMedium?.copyWith(color: colores.sobreBoton)),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: AppTokens.espacioS),
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.schedule),
-                  title: const Text('Agendar Rosario'),
-                  subtitle: const Text('Programar recordatorios'),
-                  onTap: () => abrirDesdeMenu(context, (_) => const AgendarRosarioScreen()),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.tune),
-                  title: const Text('Configuración'),
-                  subtitle: const Text('Texto, contraste y tema'),
-                  onTap: () => abrirDesdeMenu(context, (_) => const ConfiguracionScreen()),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: const Text('Acerca de'),
-                  onTap: () {
-                    final navegador = Navigator.of(context);
-                    navegador.pop();
-                    // El contexto del menú se cierra; el del navegador sigue vivo.
-                    mostrarAcercaDe(navegador.context);
-                  },
-                ),
-              ],
+            const SizedBox(height: AppTokens.espacioS),
+            ListTile(
+              leading: const Icon(Icons.schedule),
+              title: const Text('Agendar Rosario'),
+              subtitle: const Text('Programar recordatorios'),
+              onTap: () => abrirDesdeMenu(context, (_) => const AgendarRosarioScreen()),
             ),
-          ),
-          const _Version(),
-        ],
+            ListTile(
+              leading: const Icon(Icons.tune),
+              title: const Text('Configuración'),
+              subtitle: const Text('Texto, contraste y tema'),
+              onTap: () => abrirDesdeMenu(context, (_) => const ConfiguracionScreen()),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Acerca de'),
+              onTap: () {
+                final navegador = Navigator.of(context);
+                navegador.pop();
+                // El contexto del menú se cierra; el del navegador sigue vivo.
+                mostrarAcercaDe(navegador.context);
+              },
+            ),
+            const _Version(),
+          ],
+        ),
       ),
     );
   }

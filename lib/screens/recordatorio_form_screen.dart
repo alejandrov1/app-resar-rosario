@@ -100,7 +100,12 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
   bool get _hayCambios => _valores() != _inicial;
 
   Future<void> _elegirHora() async {
-    final hora = await showTimePicker(context: context, initialTime: _hora);
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: _hora,
+      // El selector es de Flutter y su reloj no cabe con letra muy grande: aquí se limita el aumento.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(maxScaleFactor: 1.5, child: child!),
+    );
     if (hora != null) setState(() => _hora = hora);
   }
 

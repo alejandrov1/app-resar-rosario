@@ -91,6 +91,7 @@ class ConfiguracionScreen extends StatelessWidget {
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (dialogo) => AlertDialog(
+        scrollable: true,
         title: const Text('¿Restablecer configuración?'),
         content: const Text('El tamaño del texto, el contraste, los botones y el tema vuelven a sus valores iniciales.'),
         actions: [

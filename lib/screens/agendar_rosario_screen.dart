@@ -65,6 +65,7 @@ class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with Widget
     final eliminar = await showDialog<bool>(
       context: context,
       builder: (dialogo) => AlertDialog(
+        scrollable: true,
         title: const Text('Eliminar recordatorio'),
         content: Text('¿Quieres eliminar "${recordatorio.title}"?'),
         actions: [
@@ -273,8 +274,8 @@ class _TarjetaRecordatorio extends StatelessWidget {
                 ),
                 Text(recordatorio.daysText, style: textos.bodyMedium),
                 const SizedBox(height: AppTokens.espacioS),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Wrap(
+                  alignment: WrapAlignment.end,
                   children: [
                     TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const Text('Editar')),
                     TextButton.icon(
