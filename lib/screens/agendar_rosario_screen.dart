@@ -91,10 +91,13 @@ class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with Widget
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
-          AppTokens.espacioM,
+          AppTokens.espacioM + AppTokens.margenLateral(MediaQuery.sizeOf(context).width),
           AppTokens.espacioS,
-          AppTokens.espacioM,
-          MediaQuery.textScalerOf(context).scale(56) + AppTokens.espacioXL + AppTokens.espacioM,
+          AppTokens.espacioM + AppTokens.margenLateral(MediaQuery.sizeOf(context).width),
+          MediaQuery.textScalerOf(context).scale(56) +
+              AppTokens.espacioXL +
+              AppTokens.espacioM +
+              MediaQuery.paddingOf(context).bottom,
         ),
         children: [
           _AvisoPermisos(servicio: servicio),

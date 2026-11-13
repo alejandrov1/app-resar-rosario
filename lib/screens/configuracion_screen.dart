@@ -17,7 +17,13 @@ class ConfiguracionScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Configuración')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppTokens.espacioM),
+        // El margen centra el contenido en tabletas y el inferior respeta la barra de navegación.
+        padding: EdgeInsets.fromLTRB(
+          AppTokens.margenLateral(MediaQuery.sizeOf(context).width),
+          AppTokens.espacioM,
+          AppTokens.margenLateral(MediaQuery.sizeOf(context).width),
+          AppTokens.espacioM + MediaQuery.paddingOf(context).bottom,
+        ),
         children: [
           const _Titulo('Accesibilidad'),
           ListTile(

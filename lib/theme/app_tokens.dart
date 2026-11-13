@@ -20,6 +20,9 @@ abstract final class AppTokens {
   /// Ancho máximo del contenido (tabletas).
   static const double anchoMaximo = 600;
 
+  /// Margen a cada lado que deja el contenido de una lista en [anchoMaximo], sin quitarle el desplazamiento al borde.
+  static double margenLateral(double anchoPantalla) => anchoPantalla > anchoMaximo ? (anchoPantalla - anchoMaximo) / 2 : 0;
+
   /// Fondo blanco que enmarca la foto del rosario (pertenece a la foto, igual en todas las variantes).
   static const Color fondoFoto = Color(0xFFFFFFFF);
 

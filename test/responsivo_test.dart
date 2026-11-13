@@ -73,4 +73,55 @@ void main() {
       }
     }
   }
+
+  group('ancho máximo y áreas seguras en las listas', () {
+    Future<void> abrir(WidgetTester tester, Size tamano, String opcion) async {
+      tester.view.physicalSize = tamano * 3;
+      tester.view.devicePixelRatio = 3.0;
+      tester.view.padding = const FakeViewPadding(top: 72, bottom: 144);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(await appDePrueba());
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tocar(tester, find.text(opcion));
+    }
+
+    testWidgets('Configuración mide como máximo 600 dp en tableta', (tester) async {
+      await abrir(tester, const Size(800, 1280), 'Configuración');
+      expect(tester.getSize(find.widgetWithText(ListTile, 'Tamaño del texto')).width, lessThanOrEqualTo(600));
+      expect(tester.getSize(find.byType(Slider)).width, lessThanOrEqualTo(600));
+    });
+
+    testWidgets('Mis recordatorios mide como máximo 600 dp en tableta', (tester) async {
+      await abrir(tester, const Size(800, 1280), 'Agendar Rosario');
+      await tocar(tester, find.text('Nuevo'));
+      await tocar(tester, find.text('L'));
+      await tocar(tester, find.text('Guardar'));
+      expect(tester.getSize(find.byType(Card).first).width, lessThanOrEqualTo(600));
+      expect(tester.getSize(find.widgetWithText(Card, 'Rezar el Santo Rosario')).width, lessThanOrEqualTo(600));
+    });
+
+    testWidgets('Configuración deja su último elemento sobre la barra de navegación', (tester) async {
+      await abrir(tester, const Size(360, 640), 'Configuración');
+      await tester.dragUntilVisible(
+        find.text('Restablecer configuración'),
+        find.byType(ListView),
+        const Offset(0, -200),
+      );
+      await tester.drag(find.byType(ListView), const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.widgetWithText(ListTile, 'Restablecer configuración')).bottom, lessThanOrEqualTo(640 - 48));
+    });
+
+    testWidgets('Mis recordatorios deja su último elemento sobre la barra de navegación', (tester) async {
+      await abrir(tester, const Size(360, 640), 'Agendar Rosario');
+      await tocar(tester, find.text('Nuevo'));
+      await tocar(tester, find.text('L'));
+      await tocar(tester, find.text('Guardar'));
+      await tester.drag(find.byType(ListView), const Offset(0, -2000));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(find.widgetWithText(Card, 'Rezar el Santo Rosario')).bottom, lessThanOrEqualTo(640 - 48));
+    });
+  });
 }
