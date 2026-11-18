@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'support/app_harness.dart';
 import 'support/contraste.dart';
@@ -16,6 +17,16 @@ import 'support/recorridos_app.dart';
 /// Pulido de la revisión en un teléfono real: barras del sistema, letra grande y alineaciones.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    PackageInfo.setMockInitialValues(
+      appName: 'Santo Rosario',
+      packageName: 'com.alejandrovaldez.santorosario',
+      version: '1.0.0',
+      buildNumber: '1',
+      buildSignature: '',
+    );
+  });
 
   /// Abre la app completa con el tamaño, la escala del sistema y las preferencias dadas.
   Future<void> abrirApp(
@@ -164,6 +175,15 @@ void main() {
       }
       expect(tester.takeException(), isNull);
     });
+  });
+
+  testWidgets('C2 "Acerca de" limita la letra a 150 % para que sus botones no se partan', (tester) async {
+    await abrirApp(tester, escalaSistema: 1.5, preferencias: {'pref_text_scale': 2.0});
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tocar(tester, find.text('Acerca de'));
+    final escala = parrafo(tester, find.text('Ver licencias')).textScaler.scale(1);
+    expect(escala, lessThanOrEqualTo(1.5 + 1e-9));
   });
 
   testWidgets('P6 los 7 días caben en una fila de 48 dp en 360 dp de ancho', (tester) async {

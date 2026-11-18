@@ -45,6 +45,15 @@ Future<void> _soloAgendar(WidgetTester tester, Revisar revisar, String pantalla)
   await revisar(pantalla);
 }
 
+/// Los avisos de permisos, con la lista vacía y después con un recordatorio.
+Future<void> _agendarConAviso(WidgetTester tester, Revisar revisar, String pantalla) async {
+  await _soloAgendar(tester, revisar, '$pantalla, lista vacía');
+  await tocar(tester, find.text('Nuevo'));
+  await tocar(tester, find.text('L'));
+  await tocar(tester, find.text('Guardar'));
+  await revisar('$pantalla, con un recordatorio');
+}
+
 final recorridos = <Recorrido>[
   Recorrido('inicio, menú y misterios del día', (tester, revisar) async {
     await revisar('inicio');
@@ -87,29 +96,52 @@ final recorridos = <Recorrido>[
     await revisar('recordatorio desactivado');
     await tocar(tester, find.text('Rezar el Santo Rosario'));
     await revisar('formulario de edición');
+    await tocar(tester, find.text('L')); // quita el único día
+    await tocar(tester, find.text('Guardar'));
+    await revisar('formulario de edición con error de días');
+    await tocar(tester, find.text('M')); // cambia algo para que haya qué descartar
     await tocar(tester, find.byTooltip('Cerrar'));
+    await revisar('¿Descartar los cambios?');
+    await tocar(tester, find.text('Seguir editando'));
+    await tocar(tester, find.byTooltip('Cerrar'));
+    await tocar(tester, find.text('Descartar'));
+  }),
+  Recorrido('eliminar un recordatorio', (tester, revisar) async {
+    await _abrirDesdeMenu(tester, 'Agendar Rosario');
+    await tocar(tester, find.text('Nuevo'));
+    await tocar(tester, find.text('L'));
+    await tocar(tester, find.text('Guardar'));
+    await tocar(tester, find.text('Eliminar'));
+    await revisar('Eliminar recordatorio');
+    await tocar(tester, find.text('Cancelar'));
   }),
   Recorrido(
     'aviso sin notificaciones',
-    (tester, revisar) => _soloAgendar(tester, revisar, 'aviso sin notificaciones'),
+    (tester, revisar) => _agendarConAviso(tester, revisar, 'aviso sin notificaciones'),
     gateway: () => FakeNotificationsGateway()
       ..permissions = NotificationPermissions.none
       ..permissionsAfterRequest = NotificationPermissions.none,
   ),
   Recorrido(
     'aviso sin alarmas exactas',
-    (tester, revisar) => _soloAgendar(tester, revisar, 'aviso sin alarmas exactas'),
+    (tester, revisar) => _agendarConAviso(tester, revisar, 'aviso sin alarmas exactas'),
     gateway: () =>
         FakeNotificationsGateway()..permissions = const NotificationPermissions(notifications: true, exactAlarms: false),
   ),
   Recorrido(
     'aviso sin servicio de notificaciones',
-    (tester, revisar) => _soloAgendar(tester, revisar, 'aviso sin servicio'),
+    (tester, revisar) => _agendarConAviso(tester, revisar, 'aviso sin servicio'),
     gateway: () => FakeNotificationsGateway()..failInitialize = true,
   ),
   Recorrido('configuración y acerca de', (tester, revisar) async {
     await _abrirDesdeMenu(tester, 'Configuración');
     await revisar('configuración');
+    await tester.scrollUntilVisible(find.text('Oscuro'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await revisar('selector de tema');
+    await tocar(tester, find.text('Restablecer configuración'));
+    await revisar('¿Restablecer configuración?');
+    await tocar(tester, find.text('Cancelar'));
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     await _abrirDesdeMenu(tester, 'Acerca de');

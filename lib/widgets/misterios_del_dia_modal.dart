@@ -4,6 +4,7 @@ import '../data/oraciones.dart';
 import '../models/prayer_models.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
+import 'etiqueta_boton.dart';
 
 /// Diálogo con los cinco misterios que se rezan hoy.
 class MisteriosDelDiaDialog extends StatelessWidget {
@@ -53,7 +54,7 @@ class MisteriosDelDiaDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Entendido')),
+        FilledButton(onPressed: () => Navigator.pop(context), child: const EtiquetaBoton('Entendido')),
       ],
     );
   }

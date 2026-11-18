@@ -101,18 +101,28 @@ void abrirDesdeMenu(BuildContext context, WidgetBuilder pantalla) {
 Future<void> mostrarAcercaDe(BuildContext context) async {
   final info = await PackageInfo.fromPlatform();
   if (!context.mounted) return;
-  showAboutDialog(
+  // El diálogo es de Flutter y sus botones no se pueden reducir: con letra muy grande "Ver licencias" se parte,
+  // así que aquí se limita el aumento (igual que en el selector de hora).
+  showDialog<void>(
     context: context,
-    applicationName: 'Santo Rosario',
-    applicationVersion: '${info.version} (${info.buildNumber})',
-    applicationIcon: Image.asset('assets/icons/icono-rosario.png', width: 48, height: 48),
-    children: const [
-      Text('Una aplicación para rezar el Santo Rosario de manera guiada.'),
-      SizedBox(height: AppTokens.espacioM),
-      Text('Desarrollada con amor y devoción.'),
-    ],
+    builder: (_) => MediaQuery.withClampedTextScaling(
+      maxScaleFactor: escalaMaximaAcercaDe,
+      child: AboutDialog(
+        applicationName: 'Santo Rosario',
+        applicationVersion: '${info.version} (${info.buildNumber})',
+        applicationIcon: Image.asset('assets/icons/icono-rosario.png', width: 48, height: 48),
+        children: const [
+          Text('Una aplicación para rezar el Santo Rosario de manera guiada.'),
+          SizedBox(height: AppTokens.espacioM),
+          Text('Desarrollada con amor y devoción.'),
+        ],
+      ),
+    ),
   );
 }
+
+/// Aumento máximo del texto en "Acerca de".
+const double escalaMaximaAcercaDe = 1.5;
 
 class _Version extends StatefulWidget {
   const _Version();

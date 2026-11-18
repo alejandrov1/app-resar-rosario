@@ -4,6 +4,7 @@ import '../logic/rosario_session.dart';
 import '../models/prayer_models.dart';
 import '../theme/app_tokens.dart';
 import '../theme/seccion_colores.dart';
+import 'etiqueta_boton.dart';
 
 /// Nombre de la sección del paso: "Oraciones iniciales", "Misterios Gozosos" u "Oraciones finales".
 String nombreSeccion(PasoRosario paso, TipoMisterio tipo) => switch (paso.seccion) {
@@ -97,8 +98,8 @@ Future<void> confirmarSalida(BuildContext context, VoidCallback onSalir) async {
       title: const Text('¿Salir del rosario?'),
       content: const Text('Se perderá el avance de este rosario.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Salir')),
-        FilledButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Seguir rezando')),
+        TextButton(onPressed: () => Navigator.pop(dialogo, true), child: const EtiquetaBoton('Salir')),
+        FilledButton(onPressed: () => Navigator.pop(dialogo, false), child: const EtiquetaBoton('Seguir rezando')),
       ],
     ),
   );

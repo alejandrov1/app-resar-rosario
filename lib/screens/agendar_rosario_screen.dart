@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/reminder_model.dart';
 import '../services/notification_service.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/etiqueta_boton.dart';
 import 'recordatorio_form_screen.dart';
 
 /// Lista de recordatorios con alta, edición, activación y borrado.
@@ -69,8 +70,8 @@ class _AgendarRosarioScreenState extends State<AgendarRosarioScreen> with Widget
         title: const Text('Eliminar recordatorio'),
         content: Text('¿Quieres eliminar "${recordatorio.title}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Eliminar')),
+          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const EtiquetaBoton('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const EtiquetaBoton('Eliminar')),
         ],
       ),
     );
@@ -189,7 +190,7 @@ class _Aviso extends StatelessWidget {
                 child: TextButton(
                   onPressed: onAccion,
                   style: TextButton.styleFrom(foregroundColor: esquema.onSecondaryContainer),
-                  child: Text(accion!),
+                  child: EtiquetaBoton(accion!),
                 ),
               ),
           ],
@@ -280,11 +281,11 @@ class _TarjetaRecordatorio extends StatelessWidget {
                 Wrap(
                   alignment: WrapAlignment.end,
                   children: [
-                    TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const Text('Editar')),
+                    TextButton.icon(onPressed: onEditar, icon: const Icon(Icons.edit_outlined), label: const EtiquetaBoton('Editar')),
                     TextButton.icon(
                       onPressed: onEliminar,
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text('Eliminar'),
+                      label: const EtiquetaBoton('Eliminar'),
                       style: TextButton.styleFrom(foregroundColor: esquema.error),
                     ),
                   ],

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/preferences_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/etiqueta_boton.dart';
 
 /// Accesibilidad y apariencia.
 class ConfiguracionScreen extends StatelessWidget {
@@ -73,9 +74,9 @@ class ConfiguracionScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.espacioM),
             child: SegmentedButton<ThemeMode>(
               segments: const [
-                ButtonSegment(value: ThemeMode.system, label: Text('Sistema'), icon: Icon(Icons.brightness_auto)),
-                ButtonSegment(value: ThemeMode.light, label: Text('Claro'), icon: Icon(Icons.light_mode)),
-                ButtonSegment(value: ThemeMode.dark, label: Text('Oscuro'), icon: Icon(Icons.dark_mode)),
+                ButtonSegment(value: ThemeMode.system, label: EtiquetaBoton('Sistema'), icon: Icon(Icons.brightness_auto)),
+                ButtonSegment(value: ThemeMode.light, label: EtiquetaBoton('Claro'), icon: Icon(Icons.light_mode)),
+                ButtonSegment(value: ThemeMode.dark, label: EtiquetaBoton('Oscuro'), icon: Icon(Icons.dark_mode)),
               ],
               selected: {prefs.themeMode},
               onSelectionChanged: (seleccion) => prefs.updateThemeMode(seleccion.first),
@@ -101,8 +102,8 @@ class ConfiguracionScreen extends StatelessWidget {
         title: const Text('¿Restablecer configuración?'),
         content: const Text('El tamaño del texto, el contraste, los botones y el tema vuelven a sus valores iniciales.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Cancelar')),
-          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Restablecer')),
+          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const EtiquetaBoton('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const EtiquetaBoton('Restablecer')),
         ],
       ),
     );
