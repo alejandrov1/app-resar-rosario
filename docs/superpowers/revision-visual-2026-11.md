@@ -29,7 +29,10 @@ Se instaló la versión de release y se revisaron capturas de inicio, menú, mis
 
 - En modo oscuro, el recuadro de la imagen del rosario usa un blanco suave para no deslumbrar.
 - En "¿Salir del rosario?" se destaca "Seguir rezando", que es la opción segura.
-- "Comenzar a Rezar" queda fijo abajo en la pantalla de inicio.
+
+### Decisiones tomadas durante la implementación
+
+- "Comenzar a Rezar" queda fijo abajo en la pantalla de inicio, porque achicar la imagen no bastaba para que se viera sin desplazar en teléfonos pequeños.
 
 ## Pendientes menores
 
