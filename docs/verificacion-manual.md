@@ -31,6 +31,11 @@ Marcar ✅ o ❌ y anotar lo que se vio.
 
 Cada ❌ se analiza, se corrige con su prueba automática cuando sea posible y se vuelve a verificar ese punto.
 
+## Verificación automática tras la revisión visual (18 de noviembre de 2026)
+
+- `flutter analyze`: sin avisos. `flutter test`: 365 pruebas pasan, incluidas la auditoría de contraste en los 4 temas y la matriz de tamaños de pantalla y de letra.
+- `.aab` y APK de release firmados con la clave de subida.
+
 ## Verificación automática al cerrar la rama (12 de noviembre de 2026)
 
 - `flutter analyze`: sin avisos. `flutter test`: 165 pruebas pasan.
