@@ -1,54 +1,68 @@
+import java.io.FileInputStream
 import java.util.Properties
+
+// Clave de subida a Play. El archivo vive solo en la máquina del desarrollador (está en .gitignore).
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) load(FileInputStream(keystorePropertiesFile))
+}
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { stream ->
-        localProperties.load(stream)
-    }
-}
-
-val flutterVersionCode = localProperties.getProperty("flutter.versionCode")
-val flutterVersionName = localProperties.getProperty("flutter.versionName")
-
 android {
-    namespace = "com.example.app_resar_rosario"
-    // Usa un SDK de compilación reciente (34 o superior es ideal)
-    compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    namespace = "com.alejandrovaldez.santorosario"
+    // flutter_local_notifications 22 exige compileSdk 36 o más.
+    compileSdk = maxOf(flutter.compileSdkVersion, 36)
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // Necesario para las notificaciones programadas.
         isCoreLibraryDesugaringEnabled = true
-        // SOLUCIÓN: Java 11 es necesario para la compatibilidad con plugins modernos
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
     }
 
     defaultConfig {
-        applicationId = "com.example.app_resar_rosario"
-        versionCode = (flutterVersionCode ?: "1").toInt()
-        versionName = flutterVersionName ?: "1.0"
-        minSdk = 21
-        // targetSdk 34 es requerido para los permisos nuevos
-        targetSdk = 34
-        multiDexEnabled = true
+        applicationId = "com.alejandrovaldez.santorosario"
+        // flutter_local_notifications 21+ exige Android 7.0 (API 24).
+        minSdk = maxOf(flutter.minSdkVersion, 24)
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
     }
 
     buildTypes {
-        getByName("release") {
+        release {
+            // Sin key.properties (por ejemplo en CI) se firma con la clave de depuración.
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("debug")
+            isShrinkResources = true
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -57,6 +71,5 @@ flutter {
 }
 
 dependencies {
-    // Necesario para compatibilidad con APIs de Java más nuevas
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -1,0 +1,10 @@
+flutter_launcher_icons:
+  image_path: "assets/icons/icono-rosario.png"
+
+  android: "launcher_icon"
+  min_sdk_android: 24
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/icono-rosario.png"
+
+  ios: true
+  remove_alpha_ios: true

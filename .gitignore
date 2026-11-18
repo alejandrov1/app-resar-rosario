@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Compilación de Android (se genera sola)
+/android/app/build/
+/android/build/
+/android/app/.cxx/
+
+# Salidas locales de herramientas
+/graphify-out/
+/.github/modernize/
+/.vscode/
+
+# Firma de release: nunca al repositorio
+/android/key.properties
+*.jks
+*.keystore
+
+# Cobertura generada
+/coverage/

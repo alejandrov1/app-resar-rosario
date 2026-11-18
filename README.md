@@ -1,16 +1,31 @@
-# app_resar_rosario
+# Santo Rosario
 
-A new Flutter project.
+App para rezar el Santo Rosario de forma guiada, con los misterios del día, letanías, recordatorios
+y opciones de accesibilidad (tamaño de texto, alto contraste, botones grandes y modo oscuro).
 
-## Getting Started
+- **Plataformas:** Android 7.0+ e iOS 15+.
+- **Paquete:** `com.alejandrovaldez.santorosario`.
+- **Privacidad:** no recopila ni envía datos; todo se guarda en el teléfono ([política](docs/privacidad.md)).
 
-This project is a starting point for a Flutter application.
+## Desarrollo
 
-A few resources to get you started if this is your first Flutter project:
+Requiere Flutter 3.47.9.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run            # en un teléfono o emulador
+flutter analyze
+flutter test
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Estructura
+
+- `lib/data/` — textos de las oraciones y misterios (cada uno escrito una vez).
+- `lib/logic/` — recorrido del rosario (`RosarioSession`, 93 pasos).
+- `lib/services/` — preferencias, recordatorios y zona horaria.
+- `lib/theme/` — colores, medidas y temas (claro, oscuro y alto contraste).
+- `lib/screens/` y `lib/widgets/` — interfaz.
+
+## Publicación
+
+Ver [docs/publicacion.md](docs/publicacion.md).

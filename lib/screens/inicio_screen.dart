@@ -1,355 +1,219 @@
-import 'package:app_resar_rosario/services/preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../constants/app_constants.dart';
+import 'package:provider/provider.dart';
+
+import '../logic/rosario_session.dart';
+import '../models/prayer_models.dart';
+import '../theme/app_tokens.dart';
+import '../theme/barras_sistema.dart';
+import '../theme/seccion_colores.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/misterios_del_dia_modal.dart';
 import '../widgets/rosary_image_widget.dart';
-import '../widgets/main_menu_drawer.dart';
 
 class InicioScreen extends StatefulWidget {
-  final String todayMystery;
-  final String todayDay;
-  final VoidCallback onNext;
-  final PreferencesService preferences;
-
-  const InicioScreen({
-    super.key,
-    required this.todayMystery,
-    required this.todayDay,
-    required this.onNext,
-    required this.preferences,
-  });
+  const InicioScreen({super.key});
 
   @override
   State<InicioScreen> createState() => _InicioScreenState();
 }
 
-class _InicioScreenState extends State<InicioScreen> 
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    ));
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
-    ));
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
-    ));
-
-    _animationController.forward();
-  }
+class _InicioScreenState extends State<InicioScreen> with SingleTickerProviderStateMixin {
+  late final AnimationController _animacion =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
+  late final Animation<double> _aparecer =
+      CurvedAnimation(parent: _animacion, curve: const Interval(0, 0.6, curve: Curves.easeOut));
+  late final Animation<Offset> _subir = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
+      .animate(CurvedAnimation(parent: _animacion, curve: const Interval(0.3, 1, curve: Curves.easeOutCubic)));
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _animacion.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    
+    final sesion = context.watch<RosarioSession>();
+    final secciones = context.secciones;
+    final colores = secciones.iniciales;
+    final textos = Theme.of(context).textTheme;
+    // Con letra grande o en horizontal la imagen se achica para dejar más contenido a la vista.
+    final tamano = MediaQuery.sizeOf(context);
+    final escala = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    final horizontal = tamano.width > tamano.height;
+    final altoImagen = (tamano.height * (horizontal ? 0.4 : 0.26) / escala).clamp(96.0, 320.0);
+
     return Scaffold(
-      drawer: MainMenuDrawer(
-        preferences: widget.preferences,
-        todayMystery: widget.todayMystery,
-        todayDay: widget.todayDay,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: secciones.tituloInicio,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        // El fondo es un degradado que cambia con el tema: los iconos de la barra de estado también.
+        systemOverlayStyle: estiloBarras(iconosParaTema(Theme.of(context).brightness)),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
+      drawer: const AppDrawer(),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE0F2FE),
-              Color(0xFFBAE6FD),
-              Color(0xFF7DD3FC),
-            ],
-            stops: [0.0, 0.5, 1.0],
+            colors: secciones.fondoInicio,
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // Header con menú hamburguesa
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.spacingS,
-                  vertical: AppConstants.spacingXS,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Botón de menú hamburguesa
-                    Builder(
-                      builder: (context) => IconButton(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: AppTokens.anchoMaximo),
+              // El botón queda fijo abajo: con letra grande nunca se esconde tras el desplazamiento.
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(AppTokens.espacioL, AppTokens.espacioL, AppTokens.espacioL, 0),
+                      child: FadeTransition(
+                        opacity: _aparecer,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Santo Rosario',
+                              textAlign: TextAlign.center,
+                              style: textos.displaySmall?.copyWith(
+                                color: secciones.tituloInicio,
+                                fontWeight: FontWeight.w300,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.espacioL),
+                            SlideTransition(
+                              position: _subir,
+                              child: RosaryImageWidget(
+                                width: double.infinity,
+                                height: altoImagen,
+                                imagePath: 'assets/images/imagen-rosario.png',
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.espacioXL),
+                            _MisterioDelDia(dia: nombreDelDia(sesion.hoy), tipo: sesion.tipoMisterio, colores: colores),
+                            const SizedBox(height: AppTokens.espacioXL),
+                            Text(
+                              '"El Rosario es la oración más hermosa que podemos ofrecer a la Virgen María"',
+                              textAlign: TextAlign.center,
+                              style: textos.bodyMedium?.copyWith(fontStyle: FontStyle.italic, color: secciones.tituloInicio),
+                            ),
+                            const SizedBox(height: AppTokens.espacioL),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(AppTokens.espacioL),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
                         onPressed: () {
                           HapticFeedback.lightImpact();
-                          Scaffold.of(context).openDrawer();
+                          sesion.comenzar();
                         },
-                        icon: Icon(
-                          Icons.menu,
-                          color: AppConstants.primaryBlue,
-                          size: widget.preferences.useLargeButtons ? 32 : 28,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colores.boton,
+                          foregroundColor: colores.sobreBoton,
                         ),
-                        tooltip: 'Abrir menú',
-                      ),
-                    ),
-                    // Espacio para mantener el título centrado
-                    const SizedBox(width: 48),
-                  ],
-                ),
-              ),
-              
-              // Título de la app
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    Text(
-                      'Santo Rosario',
-                      style: TextStyle(
-                        fontSize: AppConstants.fontSizeXL * widget.preferences.textScaleFactor,
-                        fontWeight: FontWeight.w300,
-                        color: AppConstants.primaryBlue,
-                        letterSpacing: 2.0,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 10.0,
-                            color: Colors.white.withOpacity(0.5),
-                            offset: const Offset(2.0, 2.0),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppConstants.spacingXS),
-                    Container(
-                      width: 100,
-                      height: 2,
-                      decoration: BoxDecoration(
-                        color: AppConstants.secondaryBlue,
-                        borderRadius: BorderRadius.circular(1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppConstants.secondaryBlue.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.spacingM),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: AppConstants.spacingM),
-                      
-                      SlideTransition(
-                        position: _slideAnimation,
-                        child: ScaleTransition(
-                          scale: _scaleAnimation,
-                          child: RosaryImageWidget(
-                            width: screenWidth * 0.85,
-                            height: screenHeight * 0.35,
-                            imagePath: 'assets/images/imagen-rosario.png',
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: AppConstants.spacingL),
-                      
-                      // Widget de misterios del día (sin funcionalidad de tap)
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Container(
-                          padding: const EdgeInsets.all(AppConstants.spacingL),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(AppConstants.radiusM),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppConstants.secondaryBlue.withOpacity(0.1),
-                                spreadRadius: 2,
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
+                        // La etiqueta no se parte: si no cabe con letra grande, se reduce.
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_today_rounded,
-                                    color: AppConstants.secondaryBlue,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: AppConstants.spacingXS),
-                                  Text(
-                                    widget.todayDay,
-                                    style: TextStyle(
-                                      fontSize: AppConstants.fontSizeS * widget.preferences.textScaleFactor,
-                                      color: AppConstants.primaryBlue,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: AppConstants.spacingS),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppConstants.spacingS,
-                                  vertical: AppConstants.spacingXS,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      AppConstants.primaryBlue,
-                                      AppConstants.secondaryBlue,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Text(
-                                  'Misterios ${widget.todayMystery}',
-                                  style: TextStyle(
-                                    fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
+                              Icon(Icons.favorite_rounded),
+                              SizedBox(width: AppTokens.espacioS),
+                              Text('Comenzar a Rezar', maxLines: 1),
                             ],
                           ),
                         ),
                       ),
-                      
-                      const SizedBox(height: AppConstants.spacingL),
-                      
-                      SlideTransition(
-                        position: _slideAnimation,
-                        child: Hero(
-                          tag: 'start-button',
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                HapticFeedback.lightImpact();
-                                widget.onNext();
-                              },
-                              borderRadius: BorderRadius.circular(30),
-                              child: Container(
-                                width: screenWidth * 0.8,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: AppConstants.spacingL,
-                                  vertical: widget.preferences.useLargeButtons 
-                                      ? AppConstants.spacingM 
-                                      : AppConstants.spacingS,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      AppConstants.primaryBlue,
-                                      AppConstants.secondaryBlue,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppConstants.primaryBlue.withOpacity(0.4),
-                                      spreadRadius: 1,
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.favorite_rounded,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: AppConstants.spacingS),
-                                    Text(
-                                      'Comenzar a Rezar',
-                                      style: TextStyle(
-                                        fontSize: AppConstants.fontSizeL * widget.preferences.textScaleFactor,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MisterioDelDia extends StatelessWidget {
+  const _MisterioDelDia({required this.dia, required this.tipo, required this.colores});
+
+  final String dia;
+  final TipoMisterio tipo;
+  final SeccionColores colores;
+
+  @override
+  Widget build(BuildContext context) {
+    final textos = Theme.of(context).textTheme;
+    void abrir() => showDialog<void>(context: context, builder: (_) => MisteriosDelDiaDialog(tipo: tipo, dia: dia));
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Semantics(
+        button: true,
+        label: '$dia: Misterios ${tipo.nombre}. Ver los 5 misterios',
+        onTap: abrir,
+        excludeSemantics: true,
+        child: InkWell(
+          onTap: abrir,
+          child: Padding(
+            padding: const EdgeInsets.all(AppTokens.espacioL),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today_rounded, size: 20, color: colores.acento),
+                    const SizedBox(width: AppTokens.espacioS),
+                    Flexible(
+                      child: Text(dia, textAlign: TextAlign.center, style: textos.titleMedium?.copyWith(color: colores.acento)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppTokens.espacioM),
+                DecoratedBox(
+                  decoration: BoxDecoration(color: colores.boton, borderRadius: BorderRadius.circular(999)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTokens.espacioL, vertical: AppTokens.espacioS),
+                    // La píldora conserva su forma: el texto se reduce en vez de partirse.
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Misterios ${tipo.nombre}',
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: textos.titleLarge?.copyWith(color: colores.sobreBoton, fontWeight: FontWeight.bold),
                       ),
-                      
-                      const SizedBox(height: AppConstants.spacingL),
-                      
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Container(
-                          padding: const EdgeInsets.all(AppConstants.spacingS),
-                          child: Text(
-                            '"El Rosario es la oración más hermosa que podemos ofrecer a la Virgen María"',
-                            style: TextStyle(
-                              fontSize: AppConstants.fontSizeXS * widget.preferences.textScaleFactor,
-                              fontStyle: FontStyle.italic,
-                              color: AppConstants.primaryBlue.withOpacity(0.8),
-                              height: 1.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: AppConstants.spacingL),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: AppTokens.espacioM),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Ver los 5 misterios',
+                        textAlign: TextAlign.center,
+                        style: textos.labelLarge?.copyWith(color: colores.acento),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: colores.acento),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, mejora-integral]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Análisis, pruebas y Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      # Sin key.properties se firma con la clave de depuración: sirve para verificar, no para publicar.
+      - run: flutter build appbundle --release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: santorosario-android
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14

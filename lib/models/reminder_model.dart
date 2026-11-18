@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
-class RosarioReminder {
-  final int id;
-  final String title;
-  final String description;
-  final TimeOfDay time;
-  final List<int> daysOfWeek; // 1-7 (Lunes a Domingo)
-  final bool isActive;
-  final ReminderType type;
-  final DateTime createdAt;
+/// Mayor ID de recordatorio permitido. El ID de cada notificación es `id * 10 + día`.
+const int maxReminderId = 100000;
 
-  RosarioReminder({
+class RosarioReminder {
+  const RosarioReminder({
     required this.id,
     required this.title,
     required this.description,
@@ -21,42 +15,47 @@ class RosarioReminder {
     required this.createdAt,
   });
 
-  /// Constructor para crear un recordatorio desde un Map (leído de SharedPreferences)
+  final int id;
+  final String title;
+  final String description;
+  final TimeOfDay time;
+
+  /// Días en que suena: 1 = lunes … 7 = domingo.
+  final List<int> daysOfWeek;
+  final bool isActive;
+  final ReminderType type;
+  final DateTime createdAt;
+
+  /// Lee un recordatorio guardado. Lanza [FormatException] si los datos no son válidos.
   factory RosarioReminder.fromMap(Map<String, dynamic> map) {
+    final dias = List<int>.from(map['daysOfWeek'] as List);
+    if (dias.isEmpty || dias.any((d) => d < 1 || d > 7)) {
+      throw FormatException('Días inválidos: $dias');
+    }
     return RosarioReminder(
       id: map['id'] as int,
       title: map['title'] as String,
       description: map['description'] as String,
-      time: TimeOfDay(
-        hour: map['hour'] as int,
-        minute: map['minute'] as int,
-      ),
-      daysOfWeek: List<int>.from(map['daysOfWeek'] as List),
+      time: TimeOfDay(hour: map['hour'] as int, minute: map['minute'] as int),
+      daysOfWeek: dias,
       isActive: map['isActive'] as bool,
-      type: ReminderType.values[map['type'] as int],
-      // Para compatibilidad con recordatorios viejos que no tenían 'createdAt'
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'] as String)
-          : DateTime.now(),
+      type: ReminderType.fromStoredIndex(map['type'] as int),
+      createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt'] as String) : DateTime.now(),
     );
   }
 
-  /// Convierte el recordatorio a un Map (para guardar en SharedPreferences)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'hour': time.hour,
-      'minute': time.minute,
-      'daysOfWeek': daysOfWeek,
-      'isActive': isActive,
-      'type': type.index,
-      'createdAt': createdAt.toIso8601String(), // Guardar como texto estándar
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'hour': time.hour,
+        'minute': time.minute,
+        'daysOfWeek': daysOfWeek,
+        'isActive': isActive,
+        'type': type.index,
+        'createdAt': createdAt.toIso8601String(),
+      };
 
-  /// Crea una copia del recordatorio con algunos valores modificados
   RosarioReminder copyWith({
     int? id,
     String? title,
@@ -79,127 +78,99 @@ class RosarioReminder {
     );
   }
 
-  /// Obtiene el nombre de los días de la semana en formato legible
   String get daysText {
-    if (daysOfWeek.length == 7) {
-      return 'Todos los días';
-    }
-    
-    const dayNames = {
-      1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue',
-      5: 'Vie', 6: 'Sáb', 7: 'Dom',
-    };
-    
-    final sortedDays = List<int>.from(daysOfWeek)..sort();
-    return sortedDays.map((day) => dayNames[day]).join(', ');
+    if (daysOfWeek.toSet().length == 7) return 'Todos los días';
+    const nombres = {1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom'};
+    final ordenados = [...daysOfWeek]..sort();
+    return ordenados.map((d) => nombres[d]!).join(', ');
   }
 
-  /// Obtiene la hora en formato legible
-  String get timeText {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-  
-  @override
-  String toString() {
-    return 'RosarioReminder(id: $id, title: $title, time: $timeText, days: $daysText, active: $isActive)';
-  }
+  String get timeText =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is RosarioReminder && other.id == id;
-  }
+  String toString() => 'RosarioReminder(id: $id, title: $title, time: $timeText, days: $daysText, active: $isActive)';
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is RosarioReminder && other.id == id;
 
   @override
   int get hashCode => id.hashCode;
 }
 
-/// Tipos de recordatorio disponibles
 enum ReminderType {
   notification,
-  alarm,
-  both,
+  alarm;
+
+  /// Convierte el índice guardado. El antiguo tipo "Notificación y Alarma" (2) era igual a Alarma.
+  static ReminderType fromStoredIndex(int index) => switch (index) {
+        1 || 2 => ReminderType.alarm,
+        _ => ReminderType.notification,
+      };
 }
 
 extension ReminderTypeExtension on ReminderType {
-  String get displayName {
-    switch (this) {
-      case ReminderType.notification:
-        return 'Notificación';
-      case ReminderType.alarm:
-        return 'Alarma';
-      case ReminderType.both:
-        return 'Notificación y Alarma';
-    }
-  }
+  String get displayName => switch (this) {
+        ReminderType.notification => 'Notificación',
+        ReminderType.alarm => 'Alarma',
+      };
 
-  String get description {
-    switch (this) {
-      case ReminderType.notification:
-        return 'Solo notificación silenciosa';
-      case ReminderType.alarm:
-        return 'Alarma con sonido';
-      case ReminderType.both:
-        return 'Notificación y alarma';
-    }
-  }
+  String get description => switch (this) {
+        ReminderType.notification => 'Aviso con el sonido normal del teléfono',
+        ReminderType.alarm => 'Sonido de alarma y aviso en pantalla completa',
+      };
 
-  IconData get icon {
-    switch (this) {
-      case ReminderType.notification:
-        return Icons.notifications;
-      case ReminderType.alarm:
-        return Icons.alarm;
-      case ReminderType.both:
-        return Icons.notifications_active;
-    }
-  }
+  IconData get icon => switch (this) {
+        ReminderType.notification => Icons.notifications_outlined,
+        ReminderType.alarm => Icons.alarm,
+      };
 }
 
-/// Plantillas predefinidas para recordatorios comunes
+/// Renumera los recordatorios si algún ID está fuera de rango o repetido (los antiguos eran aleatorios
+/// de 1,000,000 en adelante). Devuelve `null` si no hace falta.
+List<RosarioReminder>? renumberIfNeeded(List<RosarioReminder> reminders) {
+  final ids = reminders.map((r) => r.id).toList();
+  final validos = ids.every((id) => id >= 1 && id <= maxReminderId);
+  final unicos = ids.toSet().length == ids.length;
+  if (validos && unicos) return null;
+  return [for (var i = 0; i < reminders.length; i++) reminders[i].copyWith(id: i + 1)];
+}
+
+/// Plantillas para crear recordatorios con un toque.
 class ReminderTemplates {
-  static List<ReminderTemplate> get templates => [
+  static const List<ReminderTemplate> templates = [
     ReminderTemplate(
       title: 'Rosario Matutino',
       description: 'Momento perfecto para comenzar el día con oración',
-      time: const TimeOfDay(hour: 7, minute: 0),
-      daysOfWeek: [1, 2, 3, 4, 5, 6, 7], // Todos los días
+      time: TimeOfDay(hour: 7, minute: 0),
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
+      type: ReminderType.notification,
+    ),
+    ReminderTemplate(
+      title: 'Rosario de Mediodía',
+      description: 'Una pausa espiritual en medio del día',
+      time: TimeOfDay(hour: 12, minute: 0),
+      daysOfWeek: [1, 2, 3, 4, 5],
       type: ReminderType.notification,
     ),
     ReminderTemplate(
       title: 'Rosario Vespertino',
       description: 'Termina tu día con la oración del Rosario',
-      time: const TimeOfDay(hour: 19, minute: 0),
-      daysOfWeek: [1, 2, 3, 4, 5, 6, 7], // Todos los días
+      time: TimeOfDay(hour: 19, minute: 0),
+      daysOfWeek: [1, 2, 3, 4, 5, 6, 7],
       type: ReminderType.notification,
     ),
     ReminderTemplate(
       title: 'Rosario Dominical',
       description: 'Dedica tiempo especial los domingos',
-      time: const TimeOfDay(hour: 10, minute: 0),
-      daysOfWeek: [7], // Solo domingos
+      time: TimeOfDay(hour: 10, minute: 0),
+      daysOfWeek: [7],
       type: ReminderType.alarm,
-    ),
-    ReminderTemplate(
-      title: 'Rosario de Mediodía',
-      description: 'Una pausa espiritual en medio del día',
-      time: const TimeOfDay(hour: 12, minute: 0),
-      daysOfWeek: [1, 2, 3, 4, 5], // Días laborales
-      type: ReminderType.notification,
     ),
   ];
 }
 
-/// Plantilla para crear recordatorios rápidamente
 class ReminderTemplate {
-  final String title;
-  final String description;
-  final TimeOfDay time;
-  final List<int> daysOfWeek;
-  final ReminderType type;
-
   const ReminderTemplate({
     required this.title,
     required this.description,
@@ -208,17 +179,9 @@ class ReminderTemplate {
     required this.type,
   });
 
-  /// Convierte la plantilla en un recordatorio real
-  RosarioReminder toReminder(int id) {
-    return RosarioReminder(
-      id: id,
-      title: title,
-      description: description,
-      time: time,
-      daysOfWeek: daysOfWeek,
-      isActive: true,
-      type: type,
-      createdAt: DateTime.now(),
-    );
-  }
+  final String title;
+  final String description;
+  final TimeOfDay time;
+  final List<int> daysOfWeek;
+  final ReminderType type;
 }

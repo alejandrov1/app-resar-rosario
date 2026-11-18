@@ -1,0 +1,42 @@
+import 'package:flutter/painting.dart';
+
+/// Medidas compartidas de la interfaz. Los colores viven en `app_theme.dart` y `seccion_colores.dart`,
+/// salvo los de la foto del rosario, que no cambian con la variante del tema.
+abstract final class AppTokens {
+  static const double espacioXS = 4;
+  static const double espacioS = 8;
+  static const double espacioM = 16;
+  static const double espacioL = 24;
+  static const double espacioXL = 32;
+
+  static const double radioS = 12;
+  static const double radioM = 16;
+  static const double radioL = 24;
+
+  /// Altura mínima de los botones.
+  static const double botonNormal = 48;
+  static const double botonGrande = 64;
+
+  /// Margen horizontal del formulario: con 12 dp a cada lado, 360 dp de pantalla alcanzan para 7 botones de 48 dp.
+  static const double margenFormulario = espacioS + espacioXS;
+
+  /// Diámetro del círculo visible de cada día del formulario. El área de toque mide [botonNormal]: los 2 dp de
+  /// diferencia a cada lado separan un círculo del siguiente.
+  static const double circuloDia = 44;
+
+  /// Ancho máximo del contenido (tabletas).
+  static const double anchoMaximo = 600;
+
+  /// Margen a cada lado que deja el contenido de una lista en [anchoMaximo], sin quitarle el desplazamiento al borde.
+  static double margenLateral(double anchoPantalla) => anchoPantalla > anchoMaximo ? (anchoPantalla - anchoMaximo) / 2 : 0;
+
+  /// Fondo blanco que enmarca la foto del rosario (pertenece a la foto, igual en todas las variantes).
+  static const Color fondoFoto = Color(0xFFFFFFFF);
+
+  /// Marco de la foto en los temas oscuros: gris lavanda muy claro, sin el deslumbramiento del blanco,
+  /// que deja bien visible el trazo morado del dibujo.
+  static const Color fondoFotoOscuro = Color(0xFFE4E1EC);
+
+  /// Sombra bajo la foto del rosario (negro al 20 %).
+  static const Color sombraFoto = Color(0x33000000);
+}
