@@ -49,7 +49,7 @@ Future<void> _soloAgendar(WidgetTester tester, Revisar revisar, String pantalla)
 Future<void> _agendarConAviso(WidgetTester tester, Revisar revisar, String pantalla) async {
   await _soloAgendar(tester, revisar, '$pantalla, lista vacía');
   await tocar(tester, find.text('Nuevo'));
-  await tocar(tester, find.text('L'));
+  await tocar(tester, find.byTooltip('Lunes'));
   await tocar(tester, find.text('Guardar'));
   await revisar('$pantalla, con un recordatorio');
 }
@@ -85,7 +85,7 @@ final recorridos = <Recorrido>[
     await revisar('formulario nuevo');
     await tocar(tester, find.text('Guardar'));
     await revisar('formulario con error de días');
-    await tocar(tester, find.text('L'));
+    await tocar(tester, find.byTooltip('Lunes'));
     await tocar(tester, find.text('Toca para cambiarla'));
     await revisar('selector de hora');
     Navigator.of(tester.element(find.byType(TimePickerDialog))).pop();
@@ -96,10 +96,10 @@ final recorridos = <Recorrido>[
     await revisar('recordatorio desactivado');
     await tocar(tester, find.text('Rezar el Santo Rosario'));
     await revisar('formulario de edición');
-    await tocar(tester, find.text('L')); // quita el único día
+    await tocar(tester, find.byTooltip('Lunes')); // quita el único día
     await tocar(tester, find.text('Guardar'));
     await revisar('formulario de edición con error de días');
-    await tocar(tester, find.text('M')); // cambia algo para que haya qué descartar
+    await tocar(tester, find.byTooltip('Martes')); // cambia algo para que haya qué descartar
     await tocar(tester, find.byTooltip('Cerrar'));
     await revisar('¿Descartar los cambios?');
     await tocar(tester, find.text('Seguir editando'));
@@ -109,7 +109,7 @@ final recorridos = <Recorrido>[
   Recorrido('eliminar un recordatorio', (tester, revisar) async {
     await _abrirDesdeMenu(tester, 'Agendar Rosario');
     await tocar(tester, find.text('Nuevo'));
-    await tocar(tester, find.text('L'));
+    await tocar(tester, find.byTooltip('Lunes'));
     await tocar(tester, find.text('Guardar'));
     await tocar(tester, find.text('Eliminar'));
     await revisar('Eliminar recordatorio');

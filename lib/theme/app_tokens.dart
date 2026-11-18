@@ -20,6 +20,10 @@ abstract final class AppTokens {
   /// Margen horizontal del formulario: con 12 dp a cada lado, 360 dp de pantalla alcanzan para 7 botones de 48 dp.
   static const double margenFormulario = espacioS + espacioXS;
 
+  /// Diámetro del círculo visible de cada día del formulario. El área de toque mide [botonNormal]: los 2 dp de
+  /// diferencia a cada lado separan un círculo del siguiente.
+  static const double circuloDia = 44;
+
   /// Ancho máximo del contenido (tabletas).
   static const double anchoMaximo = 600;
 

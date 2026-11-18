@@ -60,7 +60,7 @@ void main() {
 
   testWidgets('sin título no guarda y lo indica', (tester) async {
     final resultados = await abrir(tester);
-    await tocar(tester, find.text('L'));
+    await tocar(tester, find.byTooltip('Lunes'));
     await tester.enterText(find.byType(TextFormField), '   ');
     await tester.tap(find.text('Guardar'));
     await tester.pumpAndSettle();
@@ -70,8 +70,8 @@ void main() {
 
   testWidgets('guarda con los días y el tipo elegidos', (tester) async {
     final resultados = await abrir(tester);
-    await tocar(tester, find.text('L'));
-    await tocar(tester, find.text('X'));
+    await tocar(tester, find.byTooltip('Lunes'));
+    await tocar(tester, find.byTooltip('Miércoles'));
     await tocar(tester, find.text('Alarma'));
     await tester.tap(find.text('Guardar'));
     await tester.pumpAndSettle();
@@ -128,7 +128,7 @@ void main() {
 
   testWidgets('cerrar con cambios pregunta antes de descartar', (tester) async {
     final resultados = await abrir(tester);
-    await tocar(tester, find.text('L'));
+    await tocar(tester, find.byTooltip('Lunes'));
     await tester.tap(find.byTooltip('Cerrar'));
     await tester.pumpAndSettle();
     expect(find.text('¿Descartar los cambios?'), findsOneWidget);

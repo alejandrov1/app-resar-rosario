@@ -121,7 +121,7 @@ void main() {
     testWidgets('Mis recordatorios mide como máximo 600 dp en tableta', (tester) async {
       await abrir(tester, const Size(800, 1280), 'Agendar Rosario');
       await tocar(tester, find.text('Nuevo'));
-      await tocar(tester, find.text('L'));
+      await tocar(tester, find.byTooltip('Lunes'));
       await tocar(tester, find.text('Guardar'));
       expect(tester.getSize(find.byType(Card).first).width, lessThanOrEqualTo(600));
       expect(tester.getSize(find.widgetWithText(Card, 'Rezar el Santo Rosario')).width, lessThanOrEqualTo(600));
@@ -142,7 +142,7 @@ void main() {
     testWidgets('Mis recordatorios deja su último elemento sobre la barra de navegación', (tester) async {
       await abrir(tester, const Size(360, 640), 'Agendar Rosario');
       await tocar(tester, find.text('Nuevo'));
-      await tocar(tester, find.text('L'));
+      await tocar(tester, find.byTooltip('Lunes'));
       await tocar(tester, find.text('Guardar'));
       await tester.drag(find.byType(ListView), const Offset(0, -2000));
       await tester.pumpAndSettle();

@@ -201,6 +201,49 @@ void main() {
     expect(centros.toSet(), hasLength(1), reason: 'misma fila: $centros');
   });
 
+  group('D1 los botones de día', () {
+    Finder circulo(String dia) => find.descendant(
+          of: find.byTooltip(dia),
+          matching: find.byWidgetPredicate((w) => w is Material && w.shape is CircleBorder && w.type == MaterialType.canvas),
+        );
+
+    testWidgets('los círculos de 44 dp quedan a 4 dp uno del otro en 360 dp', (tester) async {
+      await abrirApp(tester);
+      await abrirFormulario(tester);
+      const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      for (var i = 0; i + 1 < dias.length; i++) {
+        final a = tester.getRect(circulo(dias[i]));
+        final b = tester.getRect(circulo(dias[i + 1]));
+        expect(a.width, 44, reason: dias[i]);
+        expect(b.left - a.right, closeTo(4, 0.01), reason: '${dias[i]} y ${dias[i + 1]}');
+      }
+    });
+
+    testWidgets('un toque a 1 dp del borde de la celda de 48 dp marca el día', (tester) async {
+      await abrirApp(tester);
+      await abrirFormulario(tester);
+      final celda = tester.getRect(find.byTooltip('Lunes'));
+      expect(celda.size, const Size(48, 48));
+      expect(tester.widget<Material>(circulo('Lunes')).color, Colors.transparent);
+      await tester.tapAt(celda.centerLeft + const Offset(1, 0));
+      await tester.pumpAndSettle();
+      expect(tester.widget<Material>(circulo('Lunes')).color, isNot(Colors.transparent));
+      await tester.tapAt(celda.centerRight - const Offset(1, 0));
+      await tester.pumpAndSettle();
+      expect(tester.widget<Material>(circulo('Lunes')).color, Colors.transparent);
+    });
+  });
+
+  testWidgets('M1 el error de días queda a la vista en horizontal con letra grande', (tester) async {
+    await abrirApp(tester, tamano: const Size(640, 360), escalaSistema: 1.5, preferencias: {'pref_text_scale': 2.0});
+    await abrirFormulario(tester);
+    await tocar(tester, find.text('Guardar'));
+    final error = tester.getRect(find.text('Elige al menos un día'));
+    final barra = tester.getRect(find.byType(AppBar));
+    expect(error.top, greaterThanOrEqualTo(barra.bottom), reason: '$error tapado por la barra $barra');
+    expect(error.bottom, lessThanOrEqualTo(360), reason: '$error fuera de la pantalla');
+  });
+
   testWidgets('P7 la casita se alinea con el borde del contenido y mide 48 dp', (tester) async {
     await abrirApp(tester);
     await tocar(tester, find.text('Comenzar a Rezar'));

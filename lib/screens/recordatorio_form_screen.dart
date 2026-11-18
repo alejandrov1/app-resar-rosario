@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../models/reminder_model.dart';
 import '../theme/app_tokens.dart';
+import '../widgets/etiqueta_boton.dart';
 
 const _diasSemana = [
   (1, 'L', 'Lunes'),
@@ -67,7 +68,7 @@ const double _escalaMaximaBarra = 1.3;
 
 class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
   final _formulario = GlobalKey<FormState>();
-  final _claveDias = GlobalKey();
+  final _claveErrorDias = GlobalKey();
   final _claveTitulo = GlobalKey();
   late final TextEditingController _titulo =
       TextEditingController(text: widget.recordatorio?.title ?? 'Rezar el Santo Rosario');
@@ -138,10 +139,13 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
     setState(() => _faltanDias = _dias.isEmpty);
     if (_dias.isEmpty || !tituloValido) {
       HapticFeedback.heavyImpact();
-      final clave = _dias.isEmpty ? _claveDias : _claveTitulo;
+      final clave = _dias.isEmpty ? _claveErrorDias : _claveTitulo;
+      // El texto del error existe solo después de redibujar: se busca cuando ya está en el árbol.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final destino = clave.currentContext;
-        if (destino != null) Scrollable.ensureVisible(destino, duration: const Duration(milliseconds: 300));
+        if (destino != null) {
+          Scrollable.ensureVisible(destino, duration: const Duration(milliseconds: 300), alignment: 0.5);
+        }
       });
       return;
     }
@@ -165,8 +169,8 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
         scrollable: true,
         title: const Text('¿Descartar los cambios?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const Text('Seguir editando')),
-          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const Text('Descartar')),
+          TextButton(onPressed: () => Navigator.pop(dialogo, false), child: const EtiquetaBoton('Seguir editando')),
+          FilledButton(onPressed: () => Navigator.pop(dialogo, true), child: const EtiquetaBoton('Descartar')),
         ],
       ),
     );
@@ -216,7 +220,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                   maxScaleFactor: _escalaMaximaBarra,
                   child: FilledButton(
                     onPressed: _guardar,
-                    child: const FittedBox(fit: BoxFit.scaleDown, child: Text('Guardar', maxLines: 1)),
+                    child: const EtiquetaBoton('Guardar'),
                   ),
                 ),
               ),
@@ -260,7 +264,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                       ],
                       _SelectorHora(hora: _hora, onTap: _elegirHora),
                       const SizedBox(height: AppTokens.espacioL),
-                      _Titulo('Repetir', key: _claveDias),
+                      const _Titulo('Repetir'),
                       _SelectorDias(
                         dias: _dias,
                         onCambio: (dia, marcado) => _cambiarDias(marcado ? {..._dias, dia} : ({..._dias}..remove(dia))),
@@ -280,7 +284,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                       ),
                       if (_faltanDias) ...[
                         const SizedBox(height: AppTokens.espacioS),
-                        Text('Elige al menos un día', style: textos.bodyMedium?.copyWith(color: esquema.error)),
+                        Text('Elige al menos un día', key: _claveErrorDias, style: textos.bodyMedium?.copyWith(color: esquema.error)),
                       ],
                       const SizedBox(height: AppTokens.espacioL),
                       const _Titulo('Tipo'),
@@ -290,7 +294,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
                             ButtonSegment(
                               value: tipo,
                               icon: Icon(tipo.icon),
-                              label: FittedBox(fit: BoxFit.scaleDown, child: Text(tipo.displayName, maxLines: 1)),
+                              label: EtiquetaBoton(tipo.displayName),
                             ),
                         ],
                         selected: {_tipo},
@@ -325,7 +329,7 @@ class _RecordatorioFormScreenState extends State<RecordatorioFormScreen> {
 }
 
 class _Titulo extends StatelessWidget {
-  const _Titulo(this.texto, {super.key});
+  const _Titulo(this.texto);
 
   final String texto;
 
@@ -439,26 +443,39 @@ class _BotonDia extends StatelessWidget {
         onTap: onTap,
         excludeSemantics: true,
         child: SizedBox.square(
-          dimension: 48,
-          child: Material(
-            color: marcado ? esquema.primary : Colors.transparent,
-            shape: CircleBorder(side: BorderSide(color: marcado ? esquema.primary : esquema.outline)),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppTokens.espacioXS),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      letra,
-                      style: textos.titleMedium?.copyWith(color: marcado ? esquema.onPrimary : esquema.onSurface),
+          dimension: AppTokens.botonNormal,
+          child: Stack(
+            children: [
+              // El círculo visible es más chico que el área de toque para que no se junten con los vecinos.
+              Center(
+                child: Material(
+                  color: marcado ? esquema.primary : Colors.transparent,
+                  shape: CircleBorder(side: BorderSide(color: marcado ? esquema.primary : esquema.outline)),
+                  child: SizedBox.square(
+                    dimension: AppTokens.circuloDia,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppTokens.espacioXS),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            letra,
+                            style: textos.titleMedium?.copyWith(color: marcado ? esquema.onPrimary : esquema.onSurface),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+              // La respuesta al toque ocupa toda la celda de 48 dp, también el anillo de fuera del círculo.
+              Positioned.fill(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(customBorder: const CircleBorder(), onTap: onTap),
+                ),
+              ),
+            ],
           ),
         ),
       ),
