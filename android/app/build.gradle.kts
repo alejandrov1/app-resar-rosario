@@ -15,8 +15,8 @@ plugins {
 
 android {
     namespace = "com.alejandrovaldez.santorosario"
-    // flutter_local_notifications 22 exige compileSdk 36 o más.
-    compileSdk = maxOf(flutter.compileSdkVersion, 36)
+    // flutter_local_notifications 22 exige compileSdk 36 y receive_sharing_intent 1.9 exige 37.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -56,6 +56,7 @@ android {
             }
             isMinifyEnabled = true
             isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
