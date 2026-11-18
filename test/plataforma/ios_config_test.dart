@@ -24,4 +24,16 @@ void main() {
     final delegado = File('ios/Runner/AppDelegate.swift').readAsStringSync();
     expect(delegado, contains('UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate'));
   });
+
+  test('iOS mínimo 15.5, que exige el lector de texto', () {
+    final proyecto = File('ios/Runner.xcodeproj/project.pbxproj').readAsStringSync();
+    final versiones = RegExp(r'IPHONEOS_DEPLOYMENT_TARGET = ([0-9.]+);').allMatches(proyecto).map((m) => m.group(1)).toSet();
+    expect(versiones, {'15.5'});
+  });
+
+  test('explica en español para qué usa la cámara y las fotos', () {
+    final plist = File('ios/Runner/Info.plist').readAsStringSync();
+    expect(plist, matches(RegExp(r'<key>NSCameraUsageDescription</key>\s*<string>[^<]*oraci[^<]*</string>')));
+    expect(plist, matches(RegExp(r'<key>NSPhotoLibraryUsageDescription</key>\s*<string>[^<]*oraci[^<]*</string>')));
+  });
 }

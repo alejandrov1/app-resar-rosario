@@ -70,5 +70,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Santo Rosario usa la cámara para leer oraciones impresas. La foto no se guarda.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Santo Rosario abre tus fotos para leer oraciones impresas. La foto no se guarda.</string>
 </dict>
 </plist>
