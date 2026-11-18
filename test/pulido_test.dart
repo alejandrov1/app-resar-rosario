@@ -1,5 +1,8 @@
+import 'package:app_resar_rosario/models/prayer_models.dart';
 import 'package:app_resar_rosario/theme/app_theme.dart';
 import 'package:app_resar_rosario/theme/app_tokens.dart';
+import 'package:app_resar_rosario/theme/seccion_colores.dart';
+import 'package:app_resar_rosario/widgets/paso_oracion_layout.dart';
 import 'package:app_resar_rosario/widgets/rosary_image_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -7,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/app_harness.dart';
+import 'support/contraste.dart';
 import 'support/recorridos_app.dart';
 
 /// Pulido de la revisión en un teléfono real: barras del sistema, letra grande y alineaciones.
@@ -69,6 +73,60 @@ void main() {
         expect(estilo.statusBarIconBrightness, Brightness.light);
         expect(estilo.systemNavigationBarColor, Colors.transparent);
         expect(estilo.systemNavigationBarIconBrightness, Brightness.light);
+      });
+    }
+  });
+
+  group('C1/I1 iconos del sistema legibles sobre el fondo real', () {
+    Color iconos(Brightness b) => b == Brightness.light ? Colors.white : Colors.black;
+    const temas = {
+      'claro': (ThemeMode.light, false),
+      'oscuro': (ThemeMode.dark, false),
+      'claro alto contraste': (ThemeMode.light, true),
+      'oscuro alto contraste': (ThemeMode.dark, true),
+    };
+
+    for (final MapEntry(key: nombre, value: (modo, alto)) in temas.entries) {
+      for (final seccion in SeccionRosario.values) {
+        testWidgets('rezo $nombre · ${seccion.name}', (tester) async {
+          final tema = modo == ThemeMode.light ? AppTheme.claro(altoContraste: alto) : AppTheme.oscuro(altoContraste: alto);
+          await tester.pumpWidget(MaterialApp(
+            theme: tema,
+            home: Builder(
+              builder: (context) => PasoOracionLayout(
+                colores: context.coloresDe(seccion),
+                barra: const SizedBox(),
+                cuerpo: const SizedBox(),
+                onSiguiente: () {},
+              ),
+            ),
+          ));
+          await tester.pump();
+          final fondo = tema.extension<SeccionesTema>()!.de(seccion).fondo;
+          final estilo = SystemChrome.latestStyle!;
+          expect(contraste(iconos(estilo.statusBarIconBrightness!), fondo.first), greaterThanOrEqualTo(3),
+              reason: 'barra de estado');
+          expect(contraste(iconos(estilo.systemNavigationBarIconBrightness!), fondo.last), greaterThanOrEqualTo(3),
+              reason: 'barra de navegación');
+        });
+      }
+
+      testWidgets('inicio $nombre', (tester) async {
+        await abrirApp(tester, preferencias: variantesDeTema[nombre]!);
+        final tema = Theme.of(tester.element(find.byType(Scaffold).first)).extension<SeccionesTema>()!;
+        final estilo = SystemChrome.latestStyle!;
+        expect(contraste(iconos(estilo.statusBarIconBrightness!), tema.fondoInicio.first), greaterThanOrEqualTo(3));
+        expect(contraste(iconos(estilo.systemNavigationBarIconBrightness!), tema.fondoInicio.last),
+            greaterThanOrEqualTo(3));
+      });
+
+      testWidgets('menú abierto $nombre: iconos legibles sobre la cabecera', (tester) async {
+        await abrirApp(tester, preferencias: variantesDeTema[nombre]!);
+        await tester.tap(find.byIcon(Icons.menu));
+        await tester.pumpAndSettle();
+        final tema = Theme.of(tester.element(find.text('Menú principal'))).extension<SeccionesTema>()!;
+        final estilo = SystemChrome.latestStyle!;
+        expect(contraste(iconos(estilo.statusBarIconBrightness!), tema.iniciales.boton), greaterThanOrEqualTo(3));
       });
     }
   });

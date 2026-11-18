@@ -20,9 +20,12 @@ class PasoOracionLayout extends StatelessWidget {
   });
 
   /// Con menos alto que esto (horizontal con letra grande), la barra se desplaza junto con el cuerpo
-  /// para que los botones nunca se corten. Por encima de 200 % de letra el mínimo crece con ella, porque la
-  /// barra (con su contador sin partir) ocupa más líneas.
+  /// para que los botones nunca se corten.
   static const double altoMinimoBarraFija = 400;
+
+  /// Hasta esta escala de letra el mínimo es [altoMinimoBarraFija]. Por encima crece en proporción a la letra,
+  /// porque la barra (con su contador sin partir) ocupa más líneas.
+  static const double escalaSinAjusteBarra = 2;
 
   final SeccionColores colores;
   final Widget barra;
@@ -40,9 +43,10 @@ class PasoOracionLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // El fondo de cada sección es un degradado saturado en todas las variantes: los iconos del sistema van claros.
+    // El fondo cambia con la variante (degradado saturado, blanco o negro): los iconos se eligen según el color
+    // real de arriba (barra de estado) y de abajo (barra de navegación).
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: estiloBarras(Brightness.light),
+      value: estiloBarras(iconosSobre(colores.fondo.first), iconosNavegacion: iconosSobre(colores.fondo.last)),
       child: Scaffold(
         body: DecoratedBox(
           decoration: BoxDecoration(
@@ -61,7 +65,8 @@ class PasoOracionLayout extends StatelessWidget {
                       child: LayoutBuilder(
                         builder: (context, limites) {
                           final escala = MediaQuery.textScalerOf(context).scale(1);
-                        final barraFija = limites.maxHeight >= altoMinimoBarraFija * (escala > 2 ? escala / 2 : 1);
+                          final factor = escala > escalaSinAjusteBarra ? escala / escalaSinAjusteBarra : 1.0;
+                          final barraFija = limites.maxHeight >= altoMinimoBarraFija * factor;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../screens/agendar_rosario_screen.dart';
 import '../screens/configuracion_screen.dart';
 import '../theme/app_tokens.dart';
+import '../theme/barras_sistema.dart';
 import '../theme/seccion_colores.dart';
 
 /// El único menú lateral de la app.
@@ -21,34 +23,38 @@ class AppDrawer extends StatelessWidget {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            ColoredBox(
-              color: colores.boton,
-              child: SizedBox(
-                width: double.infinity,
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppTokens.espacioL),
-                    child: Row(
-                      children: [
-                        Icon(Icons.favorite, size: 32, color: colores.sobreBoton),
-                        const SizedBox(width: AppTokens.espacioM),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Santo Rosario',
-                                style: textos.titleLarge?.copyWith(
-                                  color: colores.sobreBoton,
-                                  fontWeight: FontWeight.bold,
+            // Los iconos de la barra de estado se leen sobre la cabecera, no sobre la barra de la pantalla de abajo.
+            AnnotatedRegion<SystemUiOverlayStyle>(
+              value: estiloBarras(iconosSobre(colores.boton)),
+              child: ColoredBox(
+                color: colores.boton,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppTokens.espacioL),
+                      child: Row(
+                        children: [
+                          Icon(Icons.favorite, size: 32, color: colores.sobreBoton),
+                          const SizedBox(width: AppTokens.espacioM),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Santo Rosario',
+                                  style: textos.titleLarge?.copyWith(
+                                    color: colores.sobreBoton,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              Text('Menú principal', style: textos.bodyMedium?.copyWith(color: colores.sobreBoton)),
-                            ],
+                                Text('Menú principal', style: textos.bodyMedium?.copyWith(color: colores.sobreBoton)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
-import 'theme/barras_sistema.dart';
 import 'services/notification_service.dart';
 import 'services/notifications_gateway.dart';
 import 'services/preferences_service.dart';
 import 'services/zona_horaria.dart';
+import 'theme/barras_sistema.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
